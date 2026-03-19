@@ -1,13 +1,18 @@
 import { createContext, useContext, useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
+const APP_ID = import.meta.env.VITE_APP_ID || "sina-welyat";
 
 type Context = {
-    user?: {
-        id: number;
-        name: string;
-        email: string;
-        role: string;
-    }
+    user?: User;
+    login?: any;
+    logout?: any;
+}
+
+type User = {
+    id: number;
+    name: string;
+    email: string;
+    role: string;
 }
 
 export const AuthContext = createContext<Context>({});
@@ -24,13 +29,14 @@ export default function AuthProvider() {
 }
 
 function dataToLocalStorage(key: string, data: any, setter: (data: any) => void) {
-    localStorage.setItem(key, JSON.stringify(data));
+    localStorage.setItem(`${APP_ID}${key}`, JSON.stringify(data));
     setter(data);
 }
 
 function dataFromLocalStorage(key: string) {
-    const json = localStorage.getItem(key);
-    if (!json) {
+    const json = localStorage.getItem(`${APP_ID}${key}`);
+
+    if (!json || json === "undefined") {
         return null;
     }
 
@@ -40,36 +46,13 @@ function dataFromLocalStorage(key: string) {
 
 function provideAuth() {
     const navigate = useNavigate();
-    // const { post_auth_login } = useApi();
-    const [user, setUser] = useState(dataFromLocalStorage("user"));
-    const [tokens, setTokens] = useState(dataFromLocalStorage("tokens"));
-    const API_URL = import.meta.env.VITE_API_URL;
+    const [user, setUser] = useState<User>(dataFromLocalStorage("user"));
+    const [tokens, setTokens] = useState<any>(dataFromLocalStorage("tokens"));
 
-    function register(user: any, tokens: any) {
-        if (!user || !tokens) {
-            throw new Error("Erreur d'inscription");
-        }
-
+    function login(user: User, tokens: any) {
         dataToLocalStorage("user", user, setUser);
         dataToLocalStorage("tokens", tokens, setTokens);
         navigate("/");
-    }
-
-    async function login(formData: any) {
-        if (!formData?.email || !formData?.password) {
-            throw new Error("Email et mot de passe requis");
-        }
-
-        // const response = await post_auth_login(formData);
-        // const json = await response.json();
-
-        // if (!json.success) {
-        //     throw new Error(json.message ?? "Erreur serveur");
-        // } else {
-        //     dataToLocalStorage("user", json.data.user, setUser);
-        //     dataToLocalStorage("tokens", json.data.tokens, setTokens);
-        //     navigate("/");
-        // }
     }
 
     function logout() {
@@ -79,7 +62,6 @@ function provideAuth() {
     }
 
     return {
-        register,
         login,
         logout,
         user,

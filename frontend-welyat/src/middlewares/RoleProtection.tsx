@@ -1,6 +1,7 @@
 import { Outlet } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "./Auth";
+import Loading from "../pages/Loading";
 
 export default function ProtectionProvider({ roles = [] }: { roles: string[] }) {
     const auth = useAuth();
@@ -16,7 +17,7 @@ export default function ProtectionProvider({ roles = [] }: { roles: string[] }) 
     }, []);
 
     if (loading) {
-        return <div>l</div>
+        return <Loading />
     }
 
     if (!allowed) {

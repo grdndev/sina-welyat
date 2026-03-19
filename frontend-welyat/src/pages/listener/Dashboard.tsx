@@ -1,8 +1,8 @@
 import { useState } from "react";
 import Layout from "./Layout";
-import Loading from "../../components/Loading";
 import { ChevronRight, ClockFading, Cloud, Headphones, MousePointer2, Target } from "lucide-react";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, PolarAngleAxis, RadialBar, RadialBarChart } from "recharts";
+import Loading from "../Loading";
 
 type ListenerData = {
     ledger_value: number;
@@ -80,7 +80,7 @@ export default function Dashboard() {
                 { value: 50 },
             ]
         });
-        return <Layout><Loading /></Layout>;
+        return <Loading />;
     }
 
     return <Layout>

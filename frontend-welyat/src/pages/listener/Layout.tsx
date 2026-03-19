@@ -1,5 +1,6 @@
-import { Bell, Headphones, LogOut } from "lucide-react";
+import { Bell, Headphones } from "lucide-react";
 import type { PropsWithChildren } from "react";
+import LogoutButton from "../../components/LogoutButton";
 
 export default function Layout({ children }: PropsWithChildren) {
     return <div className="min-h-screen w-full bg-gradient-to-br from-sky-950 to-green-950 text-white">
@@ -13,7 +14,7 @@ export default function Layout({ children }: PropsWithChildren) {
                 </h1>
                 <div className="flex items-center gap-4 text-sm font-medium text-slate-100">
                     <button className="flex items-center justify-center rounded-lg bg-gray-500/30 transition hover:bg-gray-500/50 p-4 cursor-pointer"><Bell /></button>
-                    <button className="flex items-center justify-center rounded-lg bg-gray-500/30 transition hover:bg-gray-500/50 p-4 cursor-pointer"><LogOut /></button>
+                    <LogoutButton />
                 </div>
             </div>
         </header>
