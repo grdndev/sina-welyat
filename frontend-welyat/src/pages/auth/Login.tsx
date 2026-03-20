@@ -47,7 +47,7 @@ export default function Login() {
 
     return <Layout>
         <div className="h-screen flex flex-col items-center justify-center">
-            <form className="w-md flex flex-col gap-2 rounded-lg border border-cyan-500/20 p-4 bg-slate-800/80" onSubmit={handleFormSubmit}>
+            <form className="w-full md:w-fit flex flex-col gap-2 rounded-lg border border-cyan-500/20 p-4 bg-slate-800/80" onSubmit={handleFormSubmit}>
                 <h1 className="text-lg font-bold">Authentication</h1>
                 <div className="flex flex-col gap-2">
                     <div className="flex flex-col text-gray-400">
@@ -69,7 +69,7 @@ export default function Login() {
                 {error && <div className="bg-red-500/10 border-1 border-red-500/30 text-red-500 rounded py-2 px-3">
                     {error}
                 </div>}
-                <button className="bg-primary/80 hover:bg-primary border-1 border-white/20 transition rounded p-2 font-bold" type="submit">
+                <button className="bg-primary/80 hover:bg-primary border-1 border-white/20 transition rounded p-2 font-bold mt-4" type="submit">
                     {loading ? "Logging in..." : "Log in"}
                 </button>
             </form>

@@ -3,10 +3,11 @@ import Layout from "./Layout";
 import { ChevronRight, ClockFading, Cloud, Headphones, MousePointer2, Target } from "lucide-react";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, PolarAngleAxis, RadialBar, RadialBarChart } from "recharts";
 import Loading from "../Loading";
+import { maxDecimals } from "../../utils";
 
 type ListenerData = {
-    ledger_value: number;
-    ledger_available_balance: number;
+    earning_day: number;
+    available_balance: number;
     cloud_xp_balance: number;
     reputation: number;
     tips: Tip[];
@@ -41,43 +42,43 @@ export default function Dashboard() {
 
     if (!data) {
         setData({
-            ledger_value: 120,
-            ledger_available_balance: 500,
-            cloud_xp_balance: 300,
-            reputation: 92.2,
-            session_duration: 233,
+            earning_day: Math.random() * 200,
+            available_balance: Math.random() * 800,
+            cloud_xp_balance: Math.floor(Math.random() * 500),
+            reputation: maxDecimals(Math.random() * 100,2),
+            session_duration: Math.floor(Math.random() * 300),
             tips: [
-                { label: "Tip 1", amount: 10 },
-                { label: "Tip 2", amount: 20 },
-                { label: "Tip 3", amount: 30 }
+                { label: "Tip 1", amount: Math.random() * 50 },
+                { label: "Tip 2", amount: Math.random() * 50 },
+                { label: "Tip 3", amount: Math.random() * 50 }
             ],
             history: [
-                { duration_total: 60 },
-                { duration_total: 120 },
-                { duration_total: 180 }
+                { duration_total: Math.floor(Math.random() * 60) },
+                { duration_total: Math.floor(Math.random() * 60) },
+                { duration_total: Math.floor(Math.random() * 60) }
             ],
             performance: [
-                { value: 0 },
-                { value: 30 },
-                { value: 20 },
-                { value: 50 },
-                { value: 90 },
-                { value: 60 },
-                { value: 100 },
+                { value: Math.floor(Math.random() * 100) },
+                { value: Math.floor(Math.random() * 100) },
+                { value: Math.floor(Math.random() * 100) },
+                { value: Math.floor(Math.random() * 100) },
+                { value: Math.floor(Math.random() * 100) },
+                { value: Math.floor(Math.random() * 100) },
+                { value: Math.floor(Math.random() * 100) },
             ],
             forecast: [
-                { value: 20 },
-                { value: 30 },
-                { value: 20 },
-                { value: 50 },
-                { value: 20 },
-                { value: 30 },
-                { value: 20 },
-                { value: 50 },
-                { value: 20 },
-                { value: 30 },
-                { value: 20 },
-                { value: 50 },
+                { value: Math.floor(Math.random() * 100) },
+                { value: Math.floor(Math.random() * 100) },
+                { value: Math.floor(Math.random() * 100) },
+                { value: Math.floor(Math.random() * 100) },
+                { value: Math.floor(Math.random() * 100) },
+                { value: Math.floor(Math.random() * 100) },
+                { value: Math.floor(Math.random() * 100) },
+                { value: Math.floor(Math.random() * 100) },
+                { value: Math.floor(Math.random() * 100) },
+                { value: Math.floor(Math.random() * 100) },
+                { value: Math.floor(Math.random() * 100) },
+                { value: Math.floor(Math.random() * 100) },
             ]
         });
         return <Loading />;
@@ -90,14 +91,14 @@ export default function Dashboard() {
                     <div className="text-xl font-bold uppercase tracking-wider">Revenue & Balance</div>
                     <div className="flex flex-col block rounded-xl border border-cyan-400/30 bg-gradient-to-br from-emerald-600/30 to-sky-700/50 p-3">
                         <div className="text-lg font-medium tracking-wide uppercase">Earnings of the day</div>
-                        <div className="flex items-center grow text-4xl font-bold py-5 px-2">${data.ledger_value.toFixed(2)}</div>
+                        <div className="flex items-center grow text-4xl font-bold py-5 px-2">${data.earning_day.toFixed(2)}</div>
                         <div className="text-sm text-gray-400">
                             Confirmed daily earnings.
                         </div>
                     </div>
                     <div className="flex flex-col block rounded-xl border border-cyan-400/30 bg-slate-800/30 p-3">
                         <div className="text-lg font-medium tracking-wide uppercase">Total balance</div>
-                        <div className="grow flex items-center text-4xl font-bold py-5 px-2">${data.ledger_available_balance.toFixed(2)}</div>
+                        <div className="grow flex items-center text-4xl font-bold py-5 px-2">${data.available_balance.toFixed(2)}</div>
                     </div>
                     <div className="flex flex-col block rounded-xl border border-cyan-400/30 bg-gradient-to-br from-sky-700/50 to-purple-950/50 p-3">
                         <div className="text-lg font-medium tracking-wide uppercase">Cloud XP balance</div>
@@ -112,8 +113,8 @@ export default function Dashboard() {
                 </div>
                 <div className="flex flex-col gap-2 grow rounded-2xl border border-blue-500/20 bg-gradient-to-br from-emerald-700/30 via-sky-950/30 to-slate-600/80 p-4">
                     <div className="text-xl font-bold uppercase tracking-wider">Performance & Goals</div>
-                    <div className="grid grid-rows-2 gap-2">
-                        <div className="grid grid-cols-2 gap-2">
+                    <div className="flex flex-col md:grid md:grid-rows-2 gap-2">
+                        <div className="flex flex-col md:grid md:grid-cols-2 gap-2">
                             <div className="flex flex-col rounded-xl border border-blue-400/30 bg-slate-800/30 p-3 aspect-square overflow-hidden">
                                 <div className="text-lg font-medium tracking-wide uppercase">Reputation score</div>
                                 <div className="grow flex flex-col items-center justify-center relative">
@@ -146,7 +147,7 @@ export default function Dashboard() {
                                 </div>
                             </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="md:grid md:grid-cols-2 gap-2">
                             <div className="grid grid-rows-2 gap-2">
                                 <div className="flex flex-col rounded-xl border border-blue-400/30 bg-slate-800/30 p-3">
                                     <div className="mb-2 text-lg font-medium tracking-wide uppercase">Monthly forecast</div>
@@ -160,7 +161,8 @@ export default function Dashboard() {
                                     <div className="grow flex flex-col">
                                         <div className="flex grow items-center">
                                             <div className="grow rounded-full bg-gray-400/30 h-8 mr-4">
-                                                <div className="rounded-full bg-gradient-to-r from-sky-500 to-emerald-400 h-full mr-[50%]" />
+                                                {/* TODO : Faire autrement, les classes Tailwind ne permettront pas d'être dynamiques */}
+                                                <div className="rounded-full bg-gradient-to-r from-sky-500 to-emerald-400 h-full" style={{width: `${Math.floor(Math.random() * 100)}%`}} />
                                             </div>
                                             <div className="ml-auto relative">
                                                 <Target size={40} className="text-emerald-200/60" />
@@ -211,7 +213,7 @@ export default function Dashboard() {
                     <div className="rounded-xl border border-emerald-400/20 bg-slate-800/30 p-3">
                         <div className="text-lg font-medium tracking-wide uppercase">Paid minutes today</div>
                         <div className="mt-2 flex items-center justify-between text-emerald-300 py-4 gap-2">
-                            <div className="text-5xl font-bold tracking-wide text-shadow-xs text-shadow-emerald-400/40 ">{data.history.reduce((acc, call) => acc + (call.duration_paid || 0), 0)} min</div>
+                            <div className="text-5xl font-bold tracking-wide text-shadow-xs text-shadow-emerald-400/40 ">{data.history.reduce((acc, call) => acc + (call.duration_total || 0), 0)} min</div>
                             <ClockFading size={80} className="bg-gray-400/30 rounded-full p-3" />
                         </div>
                         <div className="flex justify-between border-t border-cyan-400/10 pt-4 mt-4 text-sm text-gray-400">
