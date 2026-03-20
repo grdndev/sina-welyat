@@ -1,6 +1,7 @@
 import { AtSign, CheckCircle, Eye, EyeOff, KeyRound, MoveLeft } from "lucide-react";
 import Layout from "./Layout";
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 
 export default function Register() {
     const [error, setError] = useState('');
@@ -81,10 +82,10 @@ export default function Register() {
                 </button>
             </form>
             <div className="w-sm flex p-2">
-                <a href="/login" className="flex gap-1 text-gray-300">
+                <Link to="/login" className="flex gap-1 text-gray-300">
                     <MoveLeft />
                     <div>Log in</div>
-                </a>
+                </Link>
             </div>
         </div>
     </Layout>

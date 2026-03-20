@@ -2,6 +2,7 @@ import { AtSign, Eye, EyeOff, KeyRound, MoveRight } from "lucide-react";
 import { useAuth } from "../../middlewares/Auth";
 import Layout from "./Layout";
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 
 type FormData = {
     email: string;
@@ -74,10 +75,10 @@ export default function Login() {
                 </button>
             </form>
             <div className="w-sm flex p-2">
-                <a href="/register" className="ml-auto flex gap-1 text-gray-300">
+                <Link to="/register" className="ml-auto flex gap-1 text-gray-300">
                     <div>Register</div>
                     <MoveRight />
-                </a>
+                </Link>
             </div>
         </div>
     </Layout>

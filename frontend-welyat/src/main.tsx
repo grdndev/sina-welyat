@@ -5,6 +5,9 @@ import App from './App.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
+    <head>
+      <title>WELYAT</title>
+    </head>
     <App />
   </StrictMode>,
 )

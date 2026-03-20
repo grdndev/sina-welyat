@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Layout from "./Layout";
 
-import { ArrowBigDown, ArrowBigUp, ArrowDown, ArrowUp, ChevronRight } from "lucide-react";
+import { ArrowBigDown, ArrowBigUp, ChevronRight } from "lucide-react";
 import Loading from "../Loading";
 import HealthIndicator from "../../components/HealthIndicator";
 import { maxDecimals } from "../../utils";

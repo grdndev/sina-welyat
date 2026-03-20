@@ -1,6 +1,7 @@
-import { Bell, Menu, SquareActivity } from "lucide-react";
+import { Menu, SquareActivity } from "lucide-react";
 import { useState, type PropsWithChildren } from "react";
 import LogoutButton from "../../components/LogoutButton";
+import { Link } from "react-router-dom";
 
 const nav = [
     {url: "/admin/", name: "Admin"},
@@ -22,7 +23,7 @@ export default function Layout({ children }: PropsWithChildren) {
                 <nav className="hidden md:block">
                     <ul className="flex gap-5 text-xl text-gray-400 font-semibold">
                         {nav.map(n => <li className="hover:text-gray-300">
-                            <a href={n.url}>{n.name}</a>
+                            <Link to={n.url}>{n.name}</Link>
                         </li>)}
                     </ul>
                 </nav>
@@ -39,7 +40,7 @@ export default function Layout({ children }: PropsWithChildren) {
                 <nav>
                     <ul className="flex flex-col gap-2 text-3xl text-gray-400 font-semibold p-3">
                         {nav.map(n => <li className="hover:text-gray-300 p-2">
-                            <a href={n.url}>{n.name}</a>
+                            <Link to={n.url}>{n.name}</Link>
                         </li>)}
                     </ul>
                 </nav>
