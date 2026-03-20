@@ -1,12 +1,13 @@
 import { createBrowserRouter } from "react-router-dom";
 import AuthProtection from "./middlewares/AuthProtection";
-import DashboardListener from "./pages/listener/Dashboard";
-import DashboardAdmin from "./pages/admin/Dashboard";
-import Login from "./pages/auth/Login";
 import AuthProvider from "./middlewares/Auth";
-import Register from "./pages/auth/Register";
-import Redirect from "./middlewares/Redirect";
+import DashboardAdmin from "./pages/admin/Dashboard";
+import DashboardListener from "./pages/listener/Dashboard";
 import Error from "./pages/Error";
+import Login from "./pages/auth/Login";
+import RedirectIfLoggedIn from "./middlewares/RedirectIfLoggedIn";
+import Register from "./pages/auth/Register";
+import Homepage from "./pages/landingpage/Homepage";
 
 export const router = createBrowserRouter([{
     element: <AuthProvider />,
@@ -21,12 +22,18 @@ export const router = createBrowserRouter([{
             element: <Register />
         },
         {
-            element: <AuthProtection />,
+            path: "/",
+            element: <RedirectIfLoggedIn />,
             children: [
                 {
                     path: "/",
-                    element: <Redirect />
+                    element: <Homepage />,
                 },
+            ]
+        },
+        {
+            element: <AuthProtection />,
+            children: [
                 {
                     path: "/admin",
                     element: <DashboardAdmin />

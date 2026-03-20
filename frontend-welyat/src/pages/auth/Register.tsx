@@ -77,7 +77,7 @@ export default function Register() {
                 {success && <div className="bg-green-500/10 border-1 border-green-500/30 text-green-500 rounded py-2 px-3">
                     {success}
                 </div>}
-                <button className="bg-linear-to-r from-button-from to-button-to hover:from-button-from/80 hover:to-button-to/80 border-1 border-white/20 transition rounded p-2 font-bold mt-4" type="submit">
+                <button className="bg-linear-to-r from-button-from to-button-to hover:from-button-from/80 hover:to-button-to/80 border-1 border-white/20 transition rounded p-2 font-bold mt-4 text-white" type="submit">
                     {loading ? "Registering..." : "Register"}
                 </button>
             </form>

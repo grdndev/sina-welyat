@@ -1,9 +1,8 @@
 import { useEffect } from "react";
 import { useAuth } from "./Auth";
-import { useNavigate } from "react-router-dom";
-import Loading from "../pages/Loading";
+import { Outlet, useNavigate } from "react-router-dom";
 
-export default function Redirect() {
+export default function RedirectIfLoggedIn() {
     const { user } = useAuth();
     const navigate = useNavigate();
 
@@ -17,5 +16,5 @@ export default function Redirect() {
         }
     })
 
-    return <Loading />
+    return <Outlet />
 }

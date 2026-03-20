@@ -1,7 +1,8 @@
-import { Menu, SquareActivity } from "lucide-react";
+import { Menu } from "lucide-react";
 import { useState, type PropsWithChildren } from "react";
 import LogoutButton from "../../components/LogoutButton";
 import { Link } from "react-router-dom";
+import logo from "../../assets/logo.png";
 
 const nav = [
     {url: "/admin/", name: "Admin"},
@@ -17,7 +18,7 @@ export default function Layout({ children }: PropsWithChildren) {
         <header className="fixed md:relative w-full border-b border-primary/10 bg-background p-4">
             <div className="flex items-center justify-between gap-4">
                 <h1 className="flex items-center gap-3 text-xl md:text-3xl font-bold tracking-wider uppercase">
-                    <SquareActivity size={30} className="text-cyan-400" />
+                    <img src={logo} width={50}/>
                     <span className="text-shadow-lg text-shadow-gray-400/40">Welyat</span>
                 </h1>
                 <nav className="hidden md:block">

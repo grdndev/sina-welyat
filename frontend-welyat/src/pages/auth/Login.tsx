@@ -78,7 +78,7 @@ export default function Login() {
                 {error && <div className="bg-red-500/10 border-1 border-red-500/30 text-red-500 rounded py-2 px-3">
                     {error}
                 </div>}
-                <button className="bg-linear-to-r from-button-from to-button-to hover:from-button-from/80 hover:to-button-to/80 transition rounded p-2 font-bold mt-4" type="submit">
+                <button className="bg-linear-to-r from-button-from to-button-to hover:from-button-from/80 hover:to-button-to/80 transition rounded p-2 font-bold mt-4 text-white" type="submit">
                     {loading ? "Logging in..." : "Log in"}
                 </button>
             </form>
