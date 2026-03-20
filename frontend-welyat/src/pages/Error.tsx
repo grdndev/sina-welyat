@@ -12,8 +12,8 @@ type ErrorBoundaryError = {
 export default function Error() {
     const error = useRouteError() as ErrorBoundaryError;
 
-    return <div className="flex flex-col items-center justify-center min-h-screen w-full bg-gradient-to-br from-sky-950 to-green-950 text-white">
-            <div className="flex flex-col gap-2 rounded-lg border border-cyan-500/20 p-4 bg-slate-800/80">
+    return <div className="flex flex-col items-center justify-center min-h-screen w-full bg-gradient-to-br from-background-from to-background-to text-text-primary">
+            <div className="flex flex-col gap-2 rounded-lg border border-primary/10 p-4 bg-background">
                 <h1 className="font-bold text-lg text-red-500">An Error occurred.</h1>
                 <div>
                     <div className="font-bold">{error.status} {error.statusText}</div>
@@ -21,7 +21,7 @@ export default function Error() {
                 </div>
             </div>
             <div className="w-sm flex p-2">
-                <a href="/" className="flex gap-1 text-gray-300">
+                <a href="/" className="flex gap-1 text-text-secondary">
                     <MoveLeft />
                     <div>Back</div>
                 </a>

@@ -13,11 +13,11 @@ export default function Register() {
 
     function validate() {
         if (!formData?.email || !formData?.password || !formData?.confirm) {
-            throw new Error("Veuillez remplir tous les champs");
+            throw new Error("Please fill all the fields");
         }
 
         if (formData.password !== formData.confirm) {
-            throw new Error("Les mots de passe ne correspondent pas");
+            throw new Error("Password don't match");
         }
     }
 
@@ -44,27 +44,27 @@ export default function Register() {
 
     return <Layout>
         <div className="h-screen flex flex-col items-center justify-center">
-            <form className="w-full md:w-fit flex flex-col gap-2 rounded-lg border border-cyan-500/20 p-4 bg-slate-800/80" onSubmit={handleFormSubmit}>
+            <form className="w-full sm:w-sm flex flex-col gap-2 rounded-lg border border-primary/10 p-4 bg-background" onSubmit={handleFormSubmit}>
                 <h1 className="text-lg font-bold">Registration</h1>
                 <div className="flex flex-col gap-2">
-                    <div className="flex flex-col text-gray-400">
+                    <div className="flex flex-col text-text-secondary">
                         <div>Email</div>
-                        <div className="border-1 border-gray-500 bg-gray-500/10 rounded-lg p-2 px-2 text-white/60 flex focus-within:border-cyan-500/20">
+                        <div className="border bg-gray-500/10 rounded-lg p-2 px-2 text-text-primary/60 flex focus-within:border-primary">
                             <AtSign />
                             <input className={`focus:outline-none ml-2 w-full${loading ? " animate-pulse opacity-10" : ""}`} disabled={loading} type="email" onChange={(e) => handleFormData('email', e.target.value)} />
                         </div>
                     </div>
-                    <div className="flex flex-col text-gray-400">
+                    <div className="flex flex-col text-text-secondary">
                         <div>Password</div>
-                        <div className="border-1 border-gray-500 bg-gray-500/10 rounded-lg p-2 px-2 text-white/60 flex focus-within:border-cyan-500/20">
+                        <div className="border bg-gray-500/10 rounded-lg p-2 px-2 text-text-primary/60 flex focus-within:border-primary">
                             <KeyRound />
                             <input className={`focus:outline-none ml-2 w-full${loading ? " animate-pulse opacity-10" : ""}`} disabled={loading} type={showPassword ? 'text' : 'password'} onChange={(e) => handleFormData('password', e.target.value)} />
                             <button type="button" onClick={() => setShowPassword(!showPassword)}>{showPassword ? <Eye /> : <EyeOff />}</button>
                         </div>
                     </div>
-                    <div className="flex flex-col text-gray-400">
+                    <div className="flex flex-col text-text-secondary">
                         <div>Confirm password</div>
-                        <div className="relative border-1 border-gray-500 bg-gray-500/10 rounded-lg p-2 px-2 text-white/60 flex focus-within:border-cyan-500/20">
+                        <div className="relative border bg-gray-500/10 rounded-lg p-2 px-2 text-text-primary/60 flex focus-within:border-primary">
                             <CheckCircle />
                             <input className={`focus:outline-none ml-2 w-full${loading ? " animate-pulse opacity-10" : ""}`} disabled={loading} type={showPasswordConfirm ? 'text' : 'password'} onChange={(e) => handleFormData('confirm', e.target.value)} />
                             <button type="button" onClick={() => setShowPasswordConfirm(!showPasswordConfirm)}>{showPasswordConfirm ? <Eye /> : <EyeOff />}</button>
@@ -77,12 +77,12 @@ export default function Register() {
                 {success && <div className="bg-green-500/10 border-1 border-green-500/30 text-green-500 rounded py-2 px-3">
                     {success}
                 </div>}
-                <button className="bg-primary/80 hover:bg-primary border-1 border-white/20 transition rounded p-2 font-bold mt-4" type="submit">
+                <button className="bg-linear-to-r from-button-from to-button-to hover:from-button-from/80 hover:to-button-to/80 border-1 border-white/20 transition rounded p-2 font-bold mt-4" type="submit">
                     {loading ? "Registering..." : "Register"}
                 </button>
             </form>
             <div className="w-sm flex p-2">
-                <Link to="/login" className="flex gap-1 text-gray-300">
+                <Link to="/login" className="flex gap-1 text-text-secondary">
                     <MoveLeft />
                     <div>Log in</div>
                 </Link>

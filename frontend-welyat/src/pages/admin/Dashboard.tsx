@@ -29,7 +29,7 @@ const NetDeltaDisplay = ({netDelta}: {netDelta: number}) => {
 
 const BalanceHealth = ({healthBalance}: {healthBalance: number}) => {
     const messages = [
-        "Perfect balance",
+        "Good balance",
         "Refine balance",
         "Danger"
     ];
@@ -85,16 +85,16 @@ export default function Dashboard() {
     }
 
     return <Layout>
-        <div className="flex flex-col gap-6 p-10 text-slate-100">
-            <div className="flex flex-col md:flex-row gap-5 border border-white/5 bg-slate-700/60 shadow-md rounded-lg text-2xl tracking-wide">
+        <div className="flex flex-col gap-6 p-10">
+            <div className="flex flex-col md:flex-row gap-5 border border-primary/10 bg-background shadow-md rounded-lg text-2xl tracking-wide">
                 <HealthDependentBackground
                     value={data.margin}
                     tiers={[90,30]}
-                    className="md:w-1/5 flex flex-col items p-5 border-b md:border-r md:border-b-0 border-white/5">
+                    className="md:w-1/5 flex flex-col items p-5 border-b md:border-r md:border-b-0 border-gray-400/20">
                     <div>Real margin</div>
                     <div className="text-4xl">{data.margin} %</div>
                 </HealthDependentBackground>
-                <div className="md:w-1/5 flex flex-col items bg-radial-[at_50%_150%] from-sky-600/60 to-transparent to-60% p-5 border-b md:border-r md:border-b-0 border-white/5">
+                <div className="md:w-1/5 flex flex-col items bg-radial-[at_50%_150%] from-sky-600/60 to-transparent to-60% p-5 border-b md:border-r md:border-b-0 border-gray-400/20">
                     <div>Paid hours</div>
                     <div className="text-4xl">{data.paid_hours}h</div>
                 </div>
@@ -109,21 +109,22 @@ export default function Dashboard() {
                     </div>
                 </HealthDependentBackground>
             </div>
-            <div className="flex flex-col md:flex-row gap-5 border-t border-white/5">
-                <div className="flex flex-col gap-4 grow border-r border-white/5 py-5 pr-5">
+            <div className="flex flex-col md:flex-row gap-5 border-t border-primary/10">
+                <div className="flex flex-col gap-4 grow border-r border-primary/10 py-5 pr-5">
                     <div className="text-2xl tracking-wide">Platform state</div>
+                    <div className="border rounded-lg border-primary/10 bg-background">
                         <HealthDependentBackground
                             value={data.health_balance}
-                            tiers={[90,30]}>
-                            <div className="flex flex-col gap-2 border rounded-lg border-white/5 p-5 bg-slate-700/60">
+                            tiers={[90,30]}
+                            className="flex flex-col gap-2 p-5">
                                 <div className="text-4xl tracking-tight">{maxDecimals(data.health_balance,2)} %</div>
                                 <BalanceHealth healthBalance={data.health_balance} />
                                 <div>
                                     Slight adjustments are needed to improve stability.<br />
                                     Refine Mode recommended.
                                 </div>
-                            </div>
                         </HealthDependentBackground>
+                    </div>
                 </div>
                 <div className="flex flex-col gap-3 md:w-1/4 md:p-5">
                     <div className="text-2xl tracking-wide">Admin actions</div>
@@ -133,7 +134,7 @@ export default function Dashboard() {
                 </div>
             </div>
             <div className="grid md:grid-cols-3 gap-4">
-                <div className="flex flex-col border border-white/5 rounded-lg p-4 bg-slate-700/60">
+                <div className="flex flex-col border border-primary/10 rounded-lg p-4 bg-background">
                     <div>Average cost / minute</div>
                     <div className="flex text-3xl items-center gap-2">
                         <div>{data.average_cost.toFixed(2)} $</div>
@@ -142,11 +143,12 @@ export default function Dashboard() {
                         </div>
                     </div>
                 </div>
+                <div className="border border-primary/10 rounded-lg bg-background">
                     <HealthDependentBackground
                         value={data.paid_free_ratio}
                         tiers={[0.3, 0.7]}
-                        reverse={true}>
-                        <div className="flex flex-col border border-white/5 rounded-lg p-4 bg-slate-700/60">
+                        reverse={true}
+                        className="flex flex-col p-4">
                             <div>Balance paid / free</div>
                             <div className="flex text-3xl items-center gap-2">
                                 <div>{data.paid_free_ratio.toFixed(2)}</div>
@@ -154,9 +156,9 @@ export default function Dashboard() {
                                     <PaidFreeHealth averageCost={data.paid_free_ratio} />
                                 </div>
                             </div>
-                        </div>
                     </HealthDependentBackground>
-                <div className="flex flex-col border border-white/5 rounded-lg p-4 bg-slate-700/60">
+                </div>
+                <div className="flex flex-col border border-primary/10 rounded-lg p-4 bg-background">
                     <div>Yield / active hour</div>
                     <div className="flex text-3xl items-center gap-2">
                         <div>{maxDecimals(data.average_hourly_yield,2)} $</div>
@@ -166,7 +168,7 @@ export default function Dashboard() {
                     </div>
                 </div>
             </div>
-            <button className="mx-auto flex border border-white/5 rounded-full bg-slate-700/60 hover:bg-slate-700/80 py-2 px-6 cursor-pointer">
+            <button className="mx-auto flex border border-primary/10 rounded-full bg-background hover:bg-background/80 py-2 px-6 cursor-pointer">
                 <span>Financial details</span>
                 <ChevronRight />
             </button>
