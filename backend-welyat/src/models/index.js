@@ -13,7 +13,7 @@ Call.belongsTo(User, { as: 'écoutant', foreignKey: 'écoutant_id' });
 
 // Call <-> BusinessMode
 BusinessMode.hasMany(Call, { foreignKey: 'business_mode_id' });
-Call.belongsTo(BusinessMode, { foreignKey: 'business_mode_id' });
+Call.belongsTo(BusinessMode, { foreignKey: 'business_mode_id', as: 'business_mode' });
 
 // Rating
 Call.hasMany(Rating, { foreignKey: 'call_id' });
