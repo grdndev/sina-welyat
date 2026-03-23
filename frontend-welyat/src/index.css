@@ -5,10 +5,13 @@
     --color-primary-deep: #5a2ccb;
     --color-primary-gradient: #b78cff;
     --color-accent: #ffd700;
+    --color-accent-home:#F8CD8B;
     --color-accent-soft: #f5c542;
     --color-background: #f5f3fa;
+    --color-backgound-home:#1B114E;
     --color-background-from: #efeaf9;
     --color-background-to: #e6dff7;
+    --color-text-primary-home:#fff;
     --color-text-primary: #1e1e24;
     --color-text-secondary: #6f6f7a;
     --color-button-from: #7a4cff;

@@ -8,6 +8,7 @@ import Login from "./pages/auth/Login";
 import RedirectIfLoggedIn from "./middlewares/RedirectIfLoggedIn";
 import Register from "./pages/auth/Register";
 import Homepage from "./pages/landingpage/Homepage";
+import Listener from "./pages/landingpage/Listener";
 
 export const router = createBrowserRouter([{
     element: <AuthProvider />,
@@ -43,6 +44,15 @@ export const router = createBrowserRouter([{
                     element: <DashboardListener />
                 },
             ]
-        }
+        },{
+            path: "/",
+            element: <RedirectIfLoggedIn />,
+            children: [
+                {
+                    path: "/home-listener",
+                    element: <Listener />,
+                },
+            ]
+        },
     ]
 }])
