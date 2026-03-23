@@ -24,7 +24,7 @@ Boost.belongsTo(User, { foreignKey: 'user_id' });
 
 // Call <-> BusinessMode
 BusinessMode.hasMany(Call, { foreignKey: 'business_mode_id' });
-Call.belongsTo(BusinessMode, { foreignKey: 'business_mode_id' });
+Call.belongsTo(BusinessMode, { foreignKey: 'business_mode_id', as: 'business_mode' });
 
 // Disclaimer
 DisclaimerVersion.hasMany(DisclaimerAccepted, { foreignKey: 'disclaimer_version_id' });
