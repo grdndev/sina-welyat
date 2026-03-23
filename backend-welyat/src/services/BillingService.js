@@ -10,13 +10,13 @@ class BillingService {
     async chargeBridgeFee(callId, type = 'bridge_fee_hookup') {
         try {
             const call = await Call.findByPk(callId, {
-                include: [{ model: User, as: 'parlant' }]
+                include: [{ model: User, as: 'talker' }]
             });
 
             if (!call) throw new Error(`Call ${callId} not found`);
 
             const amount = 0.10; // Fixe pour WELYAT V0
-            const user = call.parlant;
+            const user = call.talker;
 
             // Zero Debt Rule applies here too
             try {
@@ -75,11 +75,11 @@ class BillingService {
 
             // 2. Calcul du Payout précis (à la seconde)
             // Logic: payout = paid_seconds * (listener_rate_per_min / 60)
-            const listenerRatePerMin = parseFloat(call.business_mode.price_per_minute_écoutant);
+            const listenerRatePerMin = parseFloat(call.business_mode.price_per_minute_listener);
             let payoutForThisTick = listenerRatePerMin;
 
             // 2.1 Founding Listener Boost Logic (+10% max)
-            const listener = await User.findByPk(call.écoutant_id);
+            const listener = await User.findByPk(call.listener_id);
             if (listener && listener.is_founding) {
                 // Circuit Breaker: check platform margin (24h)
                 const isMarginSafe = await this.checkPlatformMarginSafety();
@@ -108,11 +108,11 @@ class BillingService {
 
             // 4. Update DB
             call.total_cost_client = parseFloat(call.total_cost_client) + price;
-            call.total_payout_écoutant = parseFloat(call.total_payout_écoutant) + payoutForThisTick;
+            call.total_payout_listener = parseFloat(call.total_payout_listener) + payoutForThisTick;
             call.duration_paid_seconds = (call.duration_paid_seconds || 0) + 60;
             await call.save();
 
-            // Crediter la balance de l'écoutant
+            // Crediter la balance de l'listener
             if (listener) {
                 listener.balance = parseFloat(listener.balance) + payoutForThisTick;
                 await listener.save();
@@ -120,7 +120,7 @@ class BillingService {
 
             // Create transaction record
             await Transaction.create({
-                user_id: call.parlant_id,
+                user_id: call.talker_id,
                 call_id: call.id,
                 type: 'charge',
                 amount: price,
@@ -145,7 +145,7 @@ class BillingService {
                 where: { type: 'charge', created_at: { [Op.gte]: twentyFourHoursAgo } }
             }) || 0;
 
-            const payouts = await Call.sum('total_payout_écoutant', {
+            const payouts = await Call.sum('total_payout_listener', {
                 where: { ended_at: { [Op.gte]: twentyFourHoursAgo } }
             }) || 0;
 

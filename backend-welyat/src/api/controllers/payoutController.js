@@ -12,7 +12,7 @@ const requestExternalPayout = async (req, res, next) => {
         const { id: userId } = req.user;
         const user = await User.findByPk(userId);
 
-        if (!user || (user.role !== 'écoutant' && user.role !== 'both')) {
+        if (!user || (user.role !== 'listener' && user.role !== 'both')) {
             return res.status(403).json({ success: false, message: 'Only listeners can request payouts' });
         }
 

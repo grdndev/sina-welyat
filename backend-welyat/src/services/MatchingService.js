@@ -4,23 +4,23 @@ const logger = require('../config/logger');
 
 class MatchingService {
     /**
-     * Trouve le meilleur écoutant disponible pour un parlant
-     * @param {string} parlantId - ID du parlant
-     * @returns {Promise<User|null>} - L'écoutant trouvé ou null
+     * Trouve le meilleur listener disponible pour un talker
+     * @param {string} talkerId - ID du talker
+     * @returns {Promise<User|null>} - L'listener trouvé ou null
      */
-    async findMatch(parlantId, mode) {
+    async findMatch(talkerId, mode) {
         try {
-            const parlant = await User.findByPk(parlantId);
-            if (!parlant) throw new Error('Parlant not found');
+            const talker = await User.findByPk(talkerId);
+            if (!talker) throw new Error('Parlant not found');
 
-            logger.info(`Matching starting for parlant ${parlantId} in mode ${mode.mode_name}`);
+            logger.info(`Matching starting for talker ${talkerId} in mode ${mode.mode_name}`);
 
             // Construction de la requête de base
             let whereClause = {
-                role: { [Op.in]: ['écoutant', 'both'] },
+                role: { [Op.in]: ['listener', 'both'] },
                 is_active: true,
                 toxic_flag: false,
-                id: { [Op.ne]: parlantId } // On ne peut pas s'écouter soi-même
+                id: { [Op.ne]: talkerId } // On ne peut pas s'écouter soi-même
             };
 
             // Logique spécifique aux modes
@@ -35,9 +35,9 @@ class MatchingService {
                 // On pourrait ajouter des filtres sur la solvabilité ici plus tard
             }
 
-            // Gestion des parlants toxiques
-            if (parlant.toxic_flag) {
-                whereClause.reputation_score = { [Op.lte]: 4.2 }; // On leur donne des écoutants "solides" mais moins "premium"
+            // Gestion des talkers toxiques
+            if (talker.toxic_flag) {
+                whereClause.reputation_score = { [Op.lte]: 4.2 }; // On leur donne des listeners "solides" mais moins "premium"
             }
 
             const potentialListeners = await User.findAll({
@@ -47,14 +47,14 @@ class MatchingService {
 
             // Filtrer les occupés
             const activeCalls = await Call.findAll({
-                attributes: ['écoutant_id'],
+                attributes: ['listener_id'],
                 where: {
                     status: { [Op.notIn]: ['ended', 'cancelled'] },
-                    écoutant_id: { [Op.ne]: null },
+                    listener_id: { [Op.ne]: null },
                 },
             });
 
-            const busyListenerIds = activeCalls.map(c => c.écoutant_id);
+            const busyListenerIds = activeCalls.map(c => c.listener_id);
             const availableListener = potentialListeners.find(user => !busyListenerIds.includes(user.id));
 
             if (availableListener) {
@@ -64,7 +64,7 @@ class MatchingService {
                     // await new Promise(resolve => setTimeout(resolve, mode.timeout_matching * 1000));
                 }
 
-                logger.info(`Match found: ${availableListener.id} for parlant ${parlantId}`);
+                logger.info(`Match found: ${availableListener.id} for talker ${talkerId}`);
                 return availableListener;
             }
 

@@ -17,7 +17,7 @@ describe("Create Redistribution", () => {
         user = await User.create({
             email: 'user@welyat.com',
             password_hash: 'hash',
-            role: 'écoutant',
+            role: 'listener',
         });
 
         redistribution = await Redistribution.create({

@@ -33,17 +33,17 @@ class XPCalculatorWorker {
 
             if (xpToAward > 0) {
                 // Award XP to both Parlant and Écoutant for participating
-                const parlant = await User.findByPk(call.parlant_id);
-                const ecoutant = await User.findByPk(call.écoutant_id);
+                const talker = await User.findByPk(call.talker_id);
+                const listener = await User.findByPk(call.listener_id);
 
-                if (parlant) {
-                    parlant.total_xp += xpToAward;
-                    await parlant.save();
+                if (talker) {
+                    talker.total_xp += xpToAward;
+                    await talker.save();
                 }
 
-                if (ecoutant) {
-                    ecoutant.total_xp += xpToAward;
-                    await ecoutant.save();
+                if (listener) {
+                    listener.total_xp += xpToAward;
+                    await listener.save();
                 }
 
                 logger.info(`XPCalculatorWorker: Awarded ${xpToAward} XP to users for call ${callId}`);

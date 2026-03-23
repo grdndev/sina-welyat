@@ -8,10 +8,10 @@ const Redistribution = require('./Redistribution');
 const RedistributionDetail = require('./RedistributionDetail');
 
 // User <-> Call
-User.hasMany(Call, { as: 'calls_as_parlant', foreignKey: 'parlant_id' });
-User.hasMany(Call, { as: 'calls_as_ecoutant', foreignKey: 'écoutant_id' });
-Call.belongsTo(User, { as: 'parlant', foreignKey: 'parlant_id' });
-Call.belongsTo(User, { as: 'écoutant', foreignKey: 'écoutant_id' });
+User.hasMany(Call, { as: 'calls_as_talker', foreignKey: 'talker_id' });
+User.hasMany(Call, { as: 'calls_as_listener', foreignKey: 'listener_id' });
+Call.belongsTo(User, { as: 'talker', foreignKey: 'talker_id' });
+Call.belongsTo(User, { as: 'listener', foreignKey: 'listener_id' });
 
 // Call <-> BusinessMode
 BusinessMode.hasMany(Call, { foreignKey: 'business_mode_id' });

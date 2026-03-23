@@ -6,7 +6,7 @@ const { v4: uuidv4 } = require('uuid');
 const jwt = require('jsonwebtoken');
 
 describe('WELYAT Call Dashboard API', () => {
-    let parlant, ecoutant, token, businessMode, activeCall, pastCall;
+    let talker, listener, token, businessMode, activeCall, pastCall;
 
     beforeAll(async () => {
         await sequelize.sync({ force: true });
@@ -16,39 +16,39 @@ describe('WELYAT Call Dashboard API', () => {
             mode_name: 'OPEN',
             free_duration_minutes: 15,
             price_per_minute_client: 0.33,
-            price_per_minute_écoutant: 0.22,
+            price_per_minute_listener: 0.22,
             xp_per_minutes: 5,
             timeout_matching: 5
         });
 
-        parlant = await User.create({
+        talker = await User.create({
             id: uuidv4(),
-            email: 'parlant@welyat.com',
+            email: 'talker@welyat.com',
             password_hash: 'hash',
-            role: 'parlant'
+            role: 'talker'
         });
 
-        ecoutant = await User.create({
+        listener = await User.create({
             id: uuidv4(),
-            email: 'ecoutant@welyat.com',
+            email: 'listener@welyat.com',
             password_hash: 'hash',
-            role: 'écoutant'
+            role: 'listener'
         });
 
-        token = jwt.sign({ id: parlant.id, email: parlant.email }, process.env.JWT_SECRET || 'test_secret_key');
+        token = jwt.sign({ id: talker.id, email: talker.email }, process.env.JWT_SECRET || 'test_secret_key');
 
         // Create calls
         activeCall = await Call.create({
-            parlant_id: parlant.id,
-            écoutant_id: ecoutant.id,
+            talker_id: talker.id,
+            listener_id: listener.id,
             business_mode_id: businessMode.id,
             status: 'active_free',
             started_at: new Date()
         });
 
         pastCall = await Call.create({
-            parlant_id: parlant.id,
-            écoutant_id: ecoutant.id,
+            talker_id: talker.id,
+            listener_id: listener.id,
             business_mode_id: businessMode.id,
             status: 'ended',
             started_at: new Date(Date.now() - 3600000),
@@ -94,11 +94,11 @@ describe('WELYAT Call Dashboard API', () => {
             expect(res.status).toBe(200);
             expect(res.body.success).toBe(true);
             expect(res.body.data.id).toBe(activeCall.id);
-            expect(res.body.data.parlant.email).toBe(parlant.email);
+            expect(res.body.data.talker.email).toBe(talker.email);
         });
 
         it('should not allow unauthorized users to see call details', async () => {
-            const otherUser = await User.create({ id: uuidv4(), email: 'other@welyat.com', password_hash: 'hash', role: 'parlant' });
+            const otherUser = await User.create({ id: uuidv4(), email: 'other@welyat.com', password_hash: 'hash', role: 'talker' });
             const otherToken = jwt.sign({ id: otherUser.id, email: otherUser.email }, process.env.JWT_SECRET || 'test_secret_key');
 
             const res = await request(app)

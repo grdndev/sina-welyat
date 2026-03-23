@@ -8,7 +8,7 @@ module.exports = {
         defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
       },
-      parlant_id: {
+      talker_id: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
@@ -18,7 +18,7 @@ module.exports = {
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
       },
-      écoutant_id: {
+      listener_id: {
         type: Sequelize.UUID,
         allowNull: true,
         references: {
@@ -76,7 +76,7 @@ module.exports = {
         type: Sequelize.DECIMAL(10, 2),
         defaultValue: 0.00,
       },
-      total_payout_écoutant: {
+      total_payout_listener: {
         type: Sequelize.DECIMAL(10, 2),
         defaultValue: 0.00,
       },
@@ -109,8 +109,8 @@ module.exports = {
     });
 
     // Add indexes
-    await queryInterface.addIndex('calls', ['parlant_id']);
-    await queryInterface.addIndex('calls', ['écoutant_id']);
+    await queryInterface.addIndex('calls', ['talker_id']);
+    await queryInterface.addIndex('calls', ['listener_id']);
     await queryInterface.addIndex('calls', ['status']);
     await queryInterface.addIndex('calls', ['started_at']);
     await queryInterface.addIndex('calls', ['twilio_call_sid']);

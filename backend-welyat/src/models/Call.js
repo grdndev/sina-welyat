@@ -9,11 +9,11 @@ const Call = sequelize.define(
             defaultValue: DataTypes.UUIDV4,
             primaryKey: true,
         },
-        parlant_id: {
+        talker_id: {
             type: DataTypes.UUID,
             allowNull: false,
         },
-        écoutant_id: {
+        listener_id: {
             type: DataTypes.UUID,
             allowNull: true,
         },
@@ -57,7 +57,7 @@ const Call = sequelize.define(
             type: DataTypes.DECIMAL(10, 2),
             defaultValue: 0.0,
         },
-        total_payout_écoutant: {
+        total_payout_listener: {
             type: DataTypes.DECIMAL(10, 2),
             defaultValue: 0.0,
         },

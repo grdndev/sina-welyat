@@ -1,12 +1,113 @@
-const { Transaction, User, sequelize } = require('../models');
+const { User, Transaction, Call, Redistribution, RedistributionDetail } = require('../models');
 const logger = require('../config/logger');
+const { Op } = require('sequelize');
+const { firstOfMonth } = require('../utils');
+const { sequelize } = require('../config/database');
 
 /**
  * CloudXPService - Manages platform margin and XP redistribution.
- * Business Rule: Platform takes 48.0% margin. 
+ * Business Rule: Platform takes 48.0% margin.
  * Excess margin can be converted to "Cloud XP" for the ecosystem.
  */
 class CloudXPService {
+    async calculateCurrentMargin() {
+        const payouts = await Transaction.findAll({
+            where: {
+                createdAt: {
+                    [Op.gte]: firstOfMonth()
+                },
+                type: 'payout',
+                status: 'completed'
+            }
+        });
+
+        const charged = await Transaction.findAll({
+            where: {
+                createdAt: {
+                    [Op.gte]: firstOfMonth()
+                },
+                type: 'charge',
+                status: 'completed'
+            }
+        });
+
+        const total_payout = 0 + payouts.reduce((sum, t) => sum + parseFloat(t.amount), 0);
+        const total_charged = 0 + charged.reduce((sum, t) => sum + parseFloat(t.amount), 0);
+
+        return {
+            total_payout,
+            total_charged,
+            total_margin: (total_charged - total_payout) / total_charged * 100
+        };
+    }
+
+    async executeRedistribution(redistribution_percentage, admin_id) {
+        const transaction = await sequelize.transaction();
+        logger.info(`CloudXPService: Admin ${admin_id} triggered Cloud Redistribution of ${redistribution_percentage}%.`);
+        try {
+            const {total_payout, total_charged, total_margin} = await this.calculateCurrentMargin();
+            const eligible_users = await User.findAll({
+                where: {
+                    role: ['listener', 'both'],
+                    total_xp: {[Op.gt]: 0},
+                },
+                include: [{
+                    model: Call,
+                    as: 'calls_as_listener',
+                    required: true,
+                    where: {
+                        createdAt: { [Op.gte]: firstOfMonth()},
+                        duration_paid_seconds: { [Op.gt]: 0 }
+                    }
+                }]
+            });
+
+            if (total_margin < 48) {
+                throw new Error("Platform health is too low.");
+            }
+
+            if (eligible_users.length <= 0) {
+                throw new Error("No eligible users");
+            }
+
+            const total_amount_redistributed = (total_charged - total_payout) * redistribution_percentage / 100;
+            const total_xp_distributed = eligible_users.reduce((sum, u) => sum + u.total_xp, 0);
+            const amount_per_xp = total_amount_redistributed / total_xp_distributed;
+            const redistribution = await Redistribution.create({
+                total_margin,
+                redistribution_percentage,
+                total_xp_distributed,
+                amount_per_xp,
+                total_amount_redistributed,
+                executed_by_admin_id: admin_id,
+                transaction
+            });
+
+            for(const user of eligible_users) {
+                const reward = user.total_xp * amount_per_xp;
+
+                await RedistributionDetail.create({
+                    redistribution_id: redistribution.id,
+                    user_id: user.id,
+                    xp_converted: user.total_xp,
+                    amount_credited: reward,
+                    transaction
+                })
+
+                user.balance = parseFloat(user.balance) + reward;
+                user.total_xp = 0;
+                await user.save({transaction});
+            }
+
+            logger.info(`CloudXPService: ${total_amount_redistributed}$ successfully redistributed to ${(await redistribution.getRedistributionDetails()).length} users.`);
+            await transaction.commit();
+        } catch(error) {
+            logger.error(`CloudXPService: Redistribution failed: ${error.message}`);
+            await transaction.rollback();
+            throw error;
+        }
+    }
+
     /**
      * Calculate current platform health (Margin).
      */
@@ -19,51 +120,6 @@ class CloudXPService {
             netMarginPercent: 49.3, // Above 48% target
             availableCloudXp: 15400
         };
-    }
-
-    /**
-     * "The Cloud Button" - Redistribute XP to all listeners based on margin surplus.
-     * Rule: SurplusMax = max(0, ProfitAvantXP - 0.48 * Revenue)
-     */
-    async triggerCloudRedistribution(adminId, envelopeUSD) {
-        const t = await sequelize.transaction();
-        try {
-            logger.info(`CloudXPService: Admin ${adminId} triggered Cloud Redistribution of ${envelopeUSD}$.`);
-
-            // 1. Calculate Monthly Profit (Simplification for V0 demo)
-            const stats = await this.calculatePlatformStats();
-            const targetMargin = 0.48;
-            const surplusMax = Math.max(0, stats.totalRevenue - (stats.totalRevenue * targetMargin) - stats.platformPayouts);
-
-            if (envelopeUSD > surplusMax) {
-                throw new Error(`CloudXPService: Envelope ${envelopeUSD}$ exceeds maximum redistributable surplus of ${surplusMax.toFixed(2)}$`);
-            }
-
-            // 2. Sum up all XP in the ecosystem
-            const totalXP = await User.sum('total_xp', { where: { role: ['écoutant', 'both'] }, transaction: t }) || 1;
-            const valuePerXP = envelopeUSD / totalXP;
-
-            // 3. Redistribute $ to all listeners with XP
-            const listeners = await User.findAll({
-                where: { role: ['écoutant', 'both'], total_xp: { [require('../models').Op.gt]: 0 } },
-                transaction: t
-            });
-
-            for (const user of listeners) {
-                const reward = user.total_xp * valuePerXP;
-                user.balance = parseFloat(user.balance) + reward;
-                user.total_xp = 0; // Consumption rule: XP are used up
-                await user.save({ transaction: t });
-                logger.info(`CloudXPService: Awarded ${reward.toFixed(4)}$ for his XP to user ${user.id}`);
-            }
-
-            await t.commit();
-            return { success: true, rewardedCount: listeners.length, totalRedistributed: envelopeUSD };
-        } catch (error) {
-            await t.rollback();
-            logger.error(`CloudXPService: Redistribution failed: ${error.message}`);
-            throw error;
-        }
     }
 }
 

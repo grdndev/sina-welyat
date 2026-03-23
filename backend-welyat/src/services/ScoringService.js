@@ -67,7 +67,7 @@ class ScoringService {
             // 2. Check total listening time in last 7 days (10 hours = 36000 seconds)
             const totalDuration = await Call.sum('duration_total_seconds', {
                 where: {
-                    écoutant_id: listenerId,
+                    listener_id: listenerId,
                     status: 'ended',
                     ended_at: { [Op.gte]: sevenDaysAgo }
                 }

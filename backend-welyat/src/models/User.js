@@ -23,9 +23,9 @@ const User = sequelize.define(
             allowNull: false,
         },
         role: {
-            type: DataTypes.ENUM('parlant', 'écoutant', 'both'),
+            type: DataTypes.ENUM('talker', 'listener', 'both'),
             allowNull: false,
-            defaultValue: 'parlant',
+            defaultValue: 'talker',
         },
         is_founding: {
             type: DataTypes.BOOLEAN,

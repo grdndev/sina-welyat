@@ -121,7 +121,7 @@ class StripeService {
     }
 
     /**
-     * Create a payout (transfer to écoutant)
+     * Create a payout (transfer to listener)
      */
     async createPayout(amount, destination, description = 'WELYAT Listener Payout') {
         try {

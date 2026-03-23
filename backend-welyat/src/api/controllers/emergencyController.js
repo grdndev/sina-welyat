@@ -15,7 +15,7 @@ const triggerEmergency = async (req, res, next) => {
         // 1. Trouver l'appel actif s'il y en a un
         const call = await Call.findOne({
             where: {
-                [require('sequelize').Op.or]: [{ parlant_id: userId }, { écoutant_id: userId }],
+                [require('sequelize').Op.or]: [{ talker_id: userId }, { listener_id: userId }],
                 status: ['waiting', 'active_free', 'alerted', 'active_paid']
             }
         });

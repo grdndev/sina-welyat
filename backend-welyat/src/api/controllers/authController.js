@@ -31,7 +31,7 @@ const register = [
         .withMessage('Le mot de passe doit contenir au moins 8 caractères'),
     body('role')
         .optional()
-        .isIn(['parlant', 'écoutant', 'both'])
+        .isIn(['talker', 'listener', 'both'])
         .withMessage('Rôle invalide'),
 
     // Handler
@@ -64,7 +64,7 @@ const register = [
             const user = await User.create({
                 email,
                 password_hash,
-                role: role || 'parlant',
+                role: role || 'talker',
             });
 
             // Generate token

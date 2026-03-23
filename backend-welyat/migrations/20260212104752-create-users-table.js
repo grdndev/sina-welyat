@@ -21,9 +21,9 @@ module.exports = {
         allowNull: false,
       },
       role: {
-        type: Sequelize.ENUM('parlant', 'écoutant', 'both'),
+        type: Sequelize.ENUM('talker', 'listener', 'both'),
         allowNull: false,
-        defaultValue: 'parlant',
+        defaultValue: 'talker',
       },
       is_founding: {
         type: Sequelize.BOOLEAN,

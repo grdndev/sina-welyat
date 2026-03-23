@@ -11,21 +11,21 @@ const logger = require('../../config/logger');
  */
 const initiateCall = async (req, res, next) => {
     try {
-        const { id: parlantId } = req.user;
+        const { id: talkerId } = req.user;
 
-        // 1. Validation de base : l'utilisateur doit être un parlant
-        const user = await User.findByPk(parlantId);
-        if (!user || (user.role !== 'parlant' && user.role !== 'both')) {
+        // 1. Validation de base : l'utilisateur doit être un talker
+        const user = await User.findByPk(talkerId);
+        if (!user || (user.role !== 'talker' && user.role !== 'both')) {
             return res.status(403).json({
                 success: false,
-                error: { message: 'Only users with parlant role can initiate calls' },
+                error: { message: 'Only users with talker role can initiate calls' },
             });
         }
 
         // 2. Vérifier si un appel est déjà actif
         const existingCall = await Call.findOne({
             where: {
-                parlant_id: parlantId,
+                talker_id: talkerId,
                 status: ['waiting', 'active_free', 'alerted', 'active_paid'],
             },
         });
@@ -59,24 +59,24 @@ const initiateCall = async (req, res, next) => {
         try {
             const authorization = await StripeService.preAuthorizeCall(user.stripe_customer_id);
             // On pourrait stocker le payment_intent_id dans une session temporaire ou meta
-            logger.info(`Pre-auth success for user ${parlantId}: ${authorization.id}`);
+            logger.info(`Pre-auth success for user ${talkerId}: ${authorization.id}`);
         } catch (stripeError) {
-            logger.error(`Stripe pre-auth failed for user ${parlantId}: ${stripeError.message}`);
+            logger.error(`Stripe pre-auth failed for user ${talkerId}: ${stripeError.message}`);
             return res.status(402).json({
                 success: false,
                 error: { message: "Payment authorization of 20.00$ failed. Please check your card." }
             });
         }
 
-        // 5. Trouver un écoutant via MatchingService (Seulement après pre-auth OK)
-        const ecoutant = await MatchingService.findMatch(parlantId, businessMode);
+        // 5. Trouver un listener via MatchingService (Seulement après pre-auth OK)
+        const listener = await MatchingService.findMatch(talkerId, businessMode);
 
         // 7. Initier l'appel Twilio
         const callbackBaseUrl = process.env.BASE_URL || `http://${process.env.HOST || 'localhost'}:${process.env.PORT || 3000}`;
         const statusCallbackUrl = `${callbackBaseUrl}/api/v1/webhooks/twilio/status`;
 
         // Dans une implémentation réelle, on appellerait Twilio ici
-        // const twilioCall = await TwilioService.initiateCall(ecoutant.phone_number, user.phone_number, statusCallbackUrl);
+        // const twilioCall = await TwilioService.initiateCall(listener.phone_number, user.phone_number, statusCallbackUrl);
         // call.twilio_call_sid = twilioCall.sid;
         // await call.save();
 
@@ -87,9 +87,9 @@ const initiateCall = async (req, res, next) => {
             data: {
                 call_id: call.id,
                 status: call.status,
-                ecoutant: {
-                    id: ecoutant.id,
-                    reputation_score: ecoutant.reputation_score,
+                listener: {
+                    id: listener.id,
+                    reputation_score: listener.reputation_score,
                 },
             },
         });
@@ -111,16 +111,16 @@ const getActiveCall = async (req, res, next) => {
         const call = await Call.findOne({
             where: {
                 [require('sequelize').Op.or]: [
-                    { parlant_id: userId },
-                    { écoutant_id: userId }
+                    { talker_id: userId },
+                    { listener_id: userId }
                 ],
                 status: {
                     [require('sequelize').Op.notIn]: ['ended', 'cancelled']
                 }
             },
             include: [
-                { model: User, as: 'parlant', attributes: ['id', 'email', 'reputation_score'] },
-                { model: User, as: 'écoutant', attributes: ['id', 'email', 'reputation_score'] },
+                { model: User, as: 'talker', attributes: ['id', 'email', 'reputation_score'] },
+                { model: User, as: 'listener', attributes: ['id', 'email', 'reputation_score'] },
                 { model: BusinessMode }
             ]
         });
@@ -142,13 +142,13 @@ const getMyCalls = async (req, res, next) => {
         const calls = await Call.findAndCountAll({
             where: {
                 [require('sequelize').Op.or]: [
-                    { parlant_id: userId },
-                    { écoutant_id: userId }
+                    { talker_id: userId },
+                    { listener_id: userId }
                 ]
             },
             include: [
-                { model: User, as: 'parlant', attributes: ['id', 'email'] },
-                { model: User, as: 'écoutant', attributes: ['id', 'email'] },
+                { model: User, as: 'talker', attributes: ['id', 'email'] },
+                { model: User, as: 'listener', attributes: ['id', 'email'] },
                 { model: BusinessMode }
             ],
             order: [['created_at', 'DESC']],
@@ -182,8 +182,8 @@ const getCallDetails = async (req, res, next) => {
 
         const call = await Call.findByPk(callId, {
             include: [
-                { model: User, as: 'parlant', attributes: ['id', 'email', 'reputation_score'] },
-                { model: User, as: 'écoutant', attributes: ['id', 'email', 'reputation_score'] },
+                { model: User, as: 'talker', attributes: ['id', 'email', 'reputation_score'] },
+                { model: User, as: 'listener', attributes: ['id', 'email', 'reputation_score'] },
                 { model: BusinessMode },
                 { model: require('../../models/Transaction'), attributes: ['id', 'type', 'amount', 'status', 'created_at'] }
             ]
@@ -194,7 +194,7 @@ const getCallDetails = async (req, res, next) => {
         }
 
         // Vérifier que l'utilisateur participe à l'appel
-        if (call.parlant_id !== userId && call.écoutant_id !== userId) {
+        if (call.talker_id !== userId && call.listener_id !== userId) {
             return res.status(403).json({ success: false, error: { message: 'Unauthorized access to this call details' } });
         }
 
@@ -222,7 +222,7 @@ const endCall = async (req, res, next) => {
             return res.status(404).json({ success: false, error: { message: 'Call not found' } });
         }
 
-        if (call.parlant_id !== userId && call.écoutant_id !== userId) {
+        if (call.talker_id !== userId && call.listener_id !== userId) {
             return res.status(403).json({ success: false, error: { message: 'Unauthorized' } });
         }
 
@@ -255,12 +255,12 @@ const endCall = async (req, res, next) => {
  */
 const recordCallFeedback = async (req, res, next) => {
     try {
-        const { id: parlantId } = req.user;
+        const { id: talkerId } = req.user;
         const { id: callId } = req.params;
         const { rating, comment, motives } = req.body; // motives if rating <= 2
 
         const call = await Call.findByPk(callId);
-        if (!call || call.parlant_id !== parlantId) {
+        if (!call || call.talker_id !== talkerId) {
             return res.status(404).json({ success: false, error: { message: 'Call not found' } });
         }
 
@@ -269,23 +269,23 @@ const recordCallFeedback = async (req, res, next) => {
 
         // 1. Store feedback as a transaction
         await Transaction.create({
-            user_id: parlantId,
+            user_id: talkerId,
             call_id: callId,
             type: 'feedback',
             amount: rating, // Rating stored here
             status: 'completed',
             metadata: {
-                listener_id: call.écoutant_id,
+                listener_id: call.listener_id,
                 comment,
                 motives
             }
         });
 
         // 2. Check for toxic status (Async)
-        ScoringService.checkToxicTalkerStatus(parlantId).catch(err => logger.error(`Error in toxic check: ${err.message}`));
+        ScoringService.checkToxicTalkerStatus(talkerId).catch(err => logger.error(`Error in toxic check: ${err.message}`));
 
         // 3. Update Listener reputation (V0 simple average)
-        const listener = await User.findByPk(call.écoutant_id);
+        const listener = await User.findByPk(call.listener_id);
         if (listener) {
             // Logic to update average reputation...
             // For V0, we just log it

@@ -40,22 +40,22 @@ const handleTwilioStatus = async (req, res, next) => {
 
                     // 1. Calcul du Payout précis (à la seconde)
                     // Payout = paid_seconds * (listener_rate_per_min / 60)
-                    if (call.écoutant_id && call.duration_paid_seconds > 0) {
-                        const ecoutant = await (require('../../models/User')).findByPk(call.écoutant_id);
+                    if (call.listener_id && call.duration_paid_seconds > 0) {
+                        const listener = await (require('../../models/User')).findByPk(call.listener_id);
                         const businessMode = await (require('../../models/BusinessMode')).findByPk(call.business_mode_id);
 
-                        if (ecoutant && businessMode) {
-                            const ratePerMin = parseFloat(businessMode.price_per_minute_écoutant);
+                        if (listener && businessMode) {
+                            const ratePerMin = parseFloat(businessMode.price_per_minute_listener);
                             const precisePayout = (call.duration_paid_seconds * (ratePerMin / 60)).toFixed(4);
 
-                            ecoutant.balance = parseFloat(ecoutant.balance) + parseFloat(precisePayout);
-                            await ecoutant.save();
+                            listener.balance = parseFloat(listener.balance) + parseFloat(precisePayout);
+                            await listener.save();
 
                             // Mettre à jour le call record pour le ledger
-                            call.total_payout_écoutant = precisePayout;
+                            call.total_payout_listener = precisePayout;
                             await call.save();
 
-                            logger.info(`WELYAT: Precise payout of ${precisePayout}$ credited to listener ${ecoutant.id} for ${call.duration_paid_seconds}s`);
+                            logger.info(`WELYAT: Precise payout of ${precisePayout}$ credited to listener ${listener.id} for ${call.duration_paid_seconds}s`);
                         }
                     }
 
@@ -64,16 +64,16 @@ const handleTwilioStatus = async (req, res, next) => {
                     const XPCalculatorService = require('../../services/XPCalculatorService');
                     const xpGenerated = XPCalculatorService.calculateXP(call.duration_free_seconds, call.duration_paid_seconds);
 
-                    if (xpGenerated > 0 && call.écoutant_id) {
-                        const ecoutant = await User.findByPk(call.écoutant_id);
-                        if (ecoutant) {
-                            ecoutant.total_xp = (ecoutant.total_xp || 0) + xpGenerated;
-                            await ecoutant.save();
+                    if (xpGenerated > 0 && call.listener_id) {
+                        const listener = await User.findByPk(call.listener_id);
+                        if (listener) {
+                            listener.total_xp = (listener.total_xp || 0) + xpGenerated;
+                            await listener.save();
 
                             call.xp_generated = xpGenerated;
                             await call.save();
 
-                            logger.info(`WELYAT: ${xpGenerated} XP credited to listener ${ecoutant.id}`);
+                            logger.info(`WELYAT: ${xpGenerated} XP credited to listener ${listener.id}`);
                         }
                     }
                 }

@@ -23,7 +23,7 @@ module.exports = {
         allowNull: false,
         comment: 'Price charged to client per minute (USD)',
       },
-      price_per_minute_écoutant: {
+      price_per_minute_listener: {
         type: Sequelize.DECIMAL(5, 2),
         allowNull: false,
         comment: 'Payout to listener per minute (USD)',

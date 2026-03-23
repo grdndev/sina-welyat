@@ -17,7 +17,7 @@ describe('WELYAT Auth API', () => {
             const res = await request(app).post('/api/v1/auth/register').send({
                 email: 'test@welyat.com',
                 password: 'password123',
-                role: 'parlant',
+                role: 'talker',
             });
 
             expect(res.statusCode).toBe(201);

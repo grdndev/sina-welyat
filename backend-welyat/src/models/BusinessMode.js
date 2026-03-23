@@ -21,7 +21,7 @@ const BusinessMode = sequelize.define(
             type: DataTypes.DECIMAL(10, 2),
             allowNull: false,
         },
-        price_per_minute_écoutant: {
+        price_per_minute_listener: {
             type: DataTypes.DECIMAL(10, 2),
             allowNull: false,
         },

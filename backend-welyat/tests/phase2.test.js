@@ -6,7 +6,7 @@ const MatchingService = require('../src/services/MatchingService');
 const { v4: uuidv4 } = require('uuid');
 
 describe('Phase 2 Tests: FSM & Matching', () => {
-    let parlant, ecoutant, businessMode;
+    let talker, listener, businessMode;
 
     beforeAll(async () => {
         await sequelize.sync({ force: true });
@@ -16,25 +16,25 @@ describe('Phase 2 Tests: FSM & Matching', () => {
             mode_name: 'normal',
             free_duration_minutes: 15,
             price_per_minute_client: 0.33,
-            price_per_minute_écoutant: 0.22,
+            price_per_minute_listener: 0.22,
             xp_per_minutes: 5,
         });
 
-        parlant = await User.create({
+        talker = await User.create({
             id: uuidv4(),
-            email: 'parlant_test@sina.com',
+            email: 'talker_test@sina.com',
             password_hash: 'hash',
-            role: 'parlant',
+            role: 'talker',
             reputation_score: 5.0,
             toxic_flag: false,
             is_active: true
         });
 
-        ecoutant = await User.create({
+        listener = await User.create({
             id: uuidv4(),
-            email: 'ecoutant_test@sina.com',
+            email: 'listener_test@sina.com',
             password_hash: 'hash',
-            role: 'écoutant',
+            role: 'listener',
             reputation_score: 5.0,
             toxic_flag: false,
             is_active: true,
@@ -56,8 +56,8 @@ describe('Phase 2 Tests: FSM & Matching', () => {
 
         beforeEach(async () => {
             call = await Call.create({
-                parlant_id: parlant.id,
-                écoutant_id: ecoutant.id,
+                talker_id: talker.id,
+                listener_id: listener.id,
                 business_mode_id: businessMode.id,
                 status: 'waiting',
             });
@@ -102,22 +102,22 @@ describe('Phase 2 Tests: FSM & Matching', () => {
 
     describe('MatchingService', () => {
         it('should find an available listener', async () => {
-            const match = await MatchingService.findMatch(parlant.id);
+            const match = await MatchingService.findMatch(talker.id);
             expect(match).toBeDefined();
             expect(match).not.toBeNull();
-            expect(match.id).toBe(ecoutant.id);
+            expect(match.id).toBe(listener.id);
         });
 
         it('should not find a listener if they are busy (in call)', async () => {
             // Create an active call for the listener
             await Call.create({
-                parlant_id: parlant.id,
-                écoutant_id: ecoutant.id, // ecoutant is busy
+                talker_id: talker.id,
+                listener_id: listener.id, // listener is busy
                 business_mode_id: businessMode.id,
                 status: 'active_free',
             });
 
-            const match = await MatchingService.findMatch(parlant.id);
+            const match = await MatchingService.findMatch(talker.id);
             expect(match).toBeNull();
         });
 
@@ -126,19 +126,19 @@ describe('Phase 2 Tests: FSM & Matching', () => {
                 id: uuidv4(),
                 email: 'toxic@sina.com',
                 password_hash: 'hash',
-                role: 'écoutant',
+                role: 'listener',
                 toxic_flag: true,
             });
 
-            // Ensure normal ecoutant is busy so we only look for toxic one
+            // Ensure normal listener is busy so we only look for toxic one
             await Call.create({
-                parlant_id: parlant.id,
-                écoutant_id: ecoutant.id,
+                talker_id: talker.id,
+                listener_id: listener.id,
                 business_mode_id: businessMode.id,
                 status: 'active_free',
             });
 
-            const match = await MatchingService.findMatch(parlant.id);
+            const match = await MatchingService.findMatch(talker.id);
             expect(match).toBeNull(); // good listener is busy, toxic is ignored -> null
 
             // Cleanup toxic user
