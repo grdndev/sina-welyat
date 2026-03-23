@@ -1,4 +1,4 @@
-const { Call } = require('../../models');
+const { Call, User } = require('../../models');
 const CallStateMachine = require('../../services/CallStateMachine');
 const logger = require('../../config/logger');
 
@@ -65,7 +65,7 @@ const handleTwilioStatus = async (req, res, next) => {
                     const xpGenerated = XPCalculatorService.calculateXP(call.duration_free_seconds, call.duration_paid_seconds);
 
                     if (xpGenerated > 0 && call.écoutant_id) {
-                        const ecoutant = await (require('../../models/User')).findByPk(call.écoutant_id);
+                        const ecoutant = await User.findByPk(call.écoutant_id);
                         if (ecoutant) {
                             ecoutant.total_xp = (ecoutant.total_xp || 0) + xpGenerated;
                             await ecoutant.save();
@@ -86,7 +86,7 @@ const handleTwilioStatus = async (req, res, next) => {
         res.status(200).send('Webhook processed');
     } catch (error) {
         logger.error(`Error in handleTwilioStatus: ${error.message}`);
-        // On répond 200 à Twilio même en cas d'erreur interne pour éviter les retries infinis 
+        // On répond 200 à Twilio même en cas d'erreur interne pour éviter les retries infinis
         // si l'erreur est logicielle, mais on logge.
         res.status(200).send('Error processed');
     }

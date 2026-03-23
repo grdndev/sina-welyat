@@ -4,6 +4,8 @@ const BusinessMode = require('./BusinessMode');
 const Call = require('./Call');
 const Rating = require('./Rating');
 const Transaction = require('./Transaction');
+const Redistribution = require('./Redistribution');
+const RedistributionDetail = require('./RedistributionDetail');
 
 // User <-> Call
 User.hasMany(Call, { as: 'calls_as_parlant', foreignKey: 'parlant_id' });
@@ -29,10 +31,20 @@ Transaction.belongsTo(User, { foreignKey: 'user_id' });
 Call.hasMany(Transaction, { foreignKey: 'call_id' });
 Transaction.belongsTo(Call, { foreignKey: 'call_id' });
 
+// XP Redistribution
+User.hasMany(Redistribution, { foreignKey: 'executed_by_admin_id' });
+Redistribution.belongsTo(User, { foreignKey: 'executed_by_admin_id' });
+Redistribution.hasMany(RedistributionDetail, { foreignKey: 'redistribution_id' });
+RedistributionDetail.belongsTo(Redistribution, { foreignKey: 'redistribution_id' });
+User.hasMany(RedistributionDetail, { foreignKey: 'user_id' });
+RedistributionDetail.belongsTo(User, { foreignKey: 'user_id' });
+
 module.exports = {
     User,
     BusinessMode,
     Call,
     Rating,
     Transaction,
+    Redistribution,
+    RedistributionDetail
 };
