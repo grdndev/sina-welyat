@@ -8,6 +8,7 @@ const callRoutes = require('./calls');
 const webhookRoutes = require('./webhooks');
 const emergencyRoutes = require('./emergency');
 const payoutRoutes = require('./payouts');
+const usersRoutes = require('./users');
 const { User, Call } = require('../../models');
 const { Op } = require('sequelize');
 const { requireRole, authenticateToken } = require('../../middleware/auth');
@@ -82,6 +83,8 @@ router.use('/api/v1/emergency', emergencyRoutes);
 
 // Payout routes
 router.use('/api/v1/payouts', payoutRoutes);
+
+router.use('/api/v1/users', authenticateToken, usersRoutes);
 
 /**
  * @route   GET /api/v1/dashboard/stats
