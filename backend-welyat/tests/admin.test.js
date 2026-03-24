@@ -101,7 +101,7 @@ describe('WELYAT Auth API', () => {
                 .send({percentage: -10})
                 .set('Authorization', `Bearer ${adminToken}`);
 
-            expect(res.statusCode).toBe(500);
+            expect(res.statusCode).toBe(400);
         });
 
         it('should get an error with over 100 percentage', async () => {
@@ -109,7 +109,7 @@ describe('WELYAT Auth API', () => {
                 .send({percentage: 110})
                 .set('Authorization', `Bearer ${adminToken}`);
 
-            expect(res.statusCode).toBe(500);
+            expect(res.statusCode).toBe(400);
         });
     });
 });

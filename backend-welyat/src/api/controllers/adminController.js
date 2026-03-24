@@ -28,7 +28,10 @@ const execute = async (req, res, next) => {
         const percentage = req.body.percentage;
 
         if (!percentage || percentage < 1 || percentage > 100) {
-            throw new Error("Percentage should be between 1 and 100");
+            return res.status(400).json({
+                success: false,
+                error: { message: "Percentage should be between 1 and 100" }
+            });
         }
 
         await CloudXPService.executeRedistribution(percentage, req.user.id)

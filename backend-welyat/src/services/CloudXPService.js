@@ -115,20 +115,6 @@ class CloudXPService {
             throw error;
         }
     }
-
-    /**
-     * Calculate current platform health (Margin).
-     */
-    async calculatePlatformStats() {
-        // In a real V0, this would sum up all transactions
-        // For the demo cockpit:
-        return {
-            totalRevenue: 2450.50,
-            platformPayouts: 1240.20,
-            netMarginPercent: 49.3, // Above 48% target
-            availableCloudXp: 15400
-        };
-    }
 }
 
 module.exports = new CloudXPService();

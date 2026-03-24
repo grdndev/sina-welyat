@@ -96,8 +96,6 @@ const initiateCall = async (req, res, next) => {
             business_mode_id: businessMode.id,
             twilio_call_sid: twilioCall.sid
         });
-        // call.twilio_call_sid = twilioCall.sid;
-        // await call.save();
 
         if (user.is_trial) {
             setTimeout(async () => {
