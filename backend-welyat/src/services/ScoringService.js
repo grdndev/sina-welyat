@@ -15,16 +15,13 @@ class ScoringService {
             const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
 
             // Count unique listeners who gave low ratings
-            const lowRatings = await Transaction.findAll({
+            const lowRatings = await Rating.findAll({
                 where: {
-                    user_id: talkerId,
-                    type: 'feedback',
-                    amount: { [Op.lte]: 2 }, // Rating stored in amount for simplicity in V0
+                    to_user_id: talkerId,
+                    score: { [Op.lte]: 2 },
                     created_at: { [Op.gte]: fourteenDaysAgo }
                 },
-                attributes: [
-                    [sequelize.fn('DISTINCT', sequelize.col('metadata->listener_id')), 'listener_id']
-                ]
+                attributes: [[sequelize.fn('DISTINCT', sequelize.col('from_user_id')), 'from_user_id']]
             });
 
             if (lowRatings.length >= 3) {
@@ -37,6 +34,7 @@ class ScoringService {
                 }
                 return true;
             }
+
             return false;
         } catch (error) {
             logger.error(`ScoringService: Error checking toxic status: ${error.message}`);

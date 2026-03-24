@@ -39,4 +39,11 @@ router.get('/:id', authenticateToken, callController.getCallDetails);
  */
 router.post('/:id/end', authenticateToken, callController.endCall);
 
+/**
+ * @route   POST /api/v1/calls/:id/rate
+ * @desc    Rate the call
+ * @access  Private
+ */
+router.post('/:id/rate', authenticateToken, callController.rateCall);
+
 module.exports = router;

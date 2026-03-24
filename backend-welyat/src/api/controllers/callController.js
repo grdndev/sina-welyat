@@ -1,4 +1,4 @@
-const { Call, User, BusinessMode, Transaction } = require('../../models');
+const { Call, User, BusinessMode, Transaction, Rating } = require('../../models');
 const CallStateMachine = require('../../services/CallStateMachine');
 const ScoringService = require('../../services/ScoringService');
 const MatchingService = require('../../services/MatchingService');
@@ -273,31 +273,51 @@ const endCall = async (req, res, next) => {
 /**
  * @route   POST /api/v1/calls/:id/feedback
  * @desc    Record feedback after a call
- * @access  Private (Parlant)
+ * @access  Private (Auth)
  */
-const recordCallFeedback = async (req, res, next) => {
+const rateCall = async (req, res, next) => {
     try {
-        const { id: talkerId } = req.user;
+        const { id } = req.user;
         const { id: callId } = req.params;
-        const { rating, comment, motives } = req.body; // motives if rating <= 2
+        const { rating, comment } = req.body;
 
         const call = await Call.findByPk(callId);
-        if (!call || call.talker_id !== talkerId) {
+
+        if (!call || call.talker_id !== id || call.listener_id !== id) {
             return res.status(404).json({ success: false, error: { message: 'Call not found' } });
         }
 
-        // 1. Store feedback as a transaction
-        await Transaction.create({
-            user_id: talkerId,
-            call_id: callId,
-            type: 'feedback',
-            amount: rating, // Rating stored here
-            status: 'completed',
-            metadata: {
-                listener_id: call.listener_id,
-                comment,
-                motives
+        if (call.duration_free_seconds + duration_paid_seconds < 120) {
+            return res.status(400).json({ success: false, error: { message: 'Call was too short to be rated' } });
+        }
+
+        var ratedUserId;
+
+        if (call.talker_id === id) {
+            ratedUserId = call.listener_id;
+        } else {
+            ratedUserId = call.talker_id;
+        }
+
+        const isRated = Rating.count({
+            where: {
+                call_id: callId,
+                from_user_id: id,
+                to_user_id: ratedUserId
             }
+        });
+
+        if (isRated) {
+            return res.status(400).json({ success: false, error: { message: 'Call was already rated' }});
+        }
+
+        // 1. Store feedback as a transaction
+        await Rating.create({
+            call_id: callId,
+            from_user_id: id,
+            to_user_id: ratedUserId,
+            score: rating,
+            comment: comment
         });
 
         // 2. Check for toxic status (Async)
