@@ -1,8 +1,11 @@
-const { Call, User, BusinessMode } = require('../../models');
+const { Call, User, BusinessMode, Transaction } = require('../../models');
+const CallStateMachine = require('../../services/CallStateMachine');
+const ScoringService = require('../../services/ScoringService');
 const MatchingService = require('../../services/MatchingService');
 const TwilioService = require('../../services/TwilioService');
 const StripeService = require('../../services/StripeService');
 const logger = require('../../config/logger');
+const { Op } = require('sequelize');
 
 /**
  * @route   POST /api/v1/calls/initiate
@@ -47,25 +50,35 @@ const initiateCall = async (req, res, next) => {
             throw new Error(`Default business mode ${defaultModeName} not found or inactive`);
         }
 
-        // 4. Autorisation Stripe (Buffer technique de 20.00$ obligatoire pour WELYAT V0)
-        // Zero Debt Rule: No match without pre-auth
-        if (!user.stripe_customer_id) {
-            return res.status(402).json({
+        // Check for trial restrictions
+        if (user.is_trial && (user.trial_sessions_used >= 4 || user.trial_seconds_used >= 900)) {
+            return res.status(403).json({
                 success: false,
-                error: { message: 'Stripe account required. Please link a payment method.' },
-            });
+                error: { message: 'Your trial has ended.' }
+            })
         }
 
-        try {
-            const authorization = await StripeService.preAuthorizeCall(user.stripe_customer_id);
-            // On pourrait stocker le payment_intent_id dans une session temporaire ou meta
-            logger.info(`Pre-auth success for user ${talkerId}: ${authorization.id}`);
-        } catch (stripeError) {
-            logger.error(`Stripe pre-auth failed for user ${talkerId}: ${stripeError.message}`);
-            return res.status(402).json({
-                success: false,
-                error: { message: "Payment authorization of 20.00$ failed. Please check your card." }
-            });
+        // 4. Autorisation Stripe (Buffer technique de 20.00$ obligatoire pour WELYAT V0)
+        // Zero Debt Rule: No match without pre-auth
+        if (!user.is_trial) {
+            if (!user.stripe_customer_id) {
+                return res.status(402).json({
+                    success: false,
+                    error: { message: 'Stripe account required. Please link a payment method.' },
+                });
+            } else {
+                try {
+                    const authorization = await StripeService.preAuthorizeCall(user.stripe_customer_id);
+                    // On pourrait stocker le payment_intent_id dans une session temporaire ou meta
+                    logger.info(`Pre-auth success for user ${talkerId}: ${authorization.id}`);
+                } catch (stripeError) {
+                    logger.error(`Stripe pre-auth failed for user ${talkerId}: ${stripeError.message}`);
+                    return res.status(402).json({
+                        success: false,
+                        error: { message: "Payment authorization of 20.00$ failed. Please check your card." }
+                    });
+                }
+            }
         }
 
         // 5. Trouver un listener via MatchingService (Seulement après pre-auth OK)
@@ -77,8 +90,20 @@ const initiateCall = async (req, res, next) => {
 
         // Dans une implémentation réelle, on appellerait Twilio ici
         // const twilioCall = await TwilioService.initiateCall(listener.phone_number, user.phone_number, statusCallbackUrl);
+        const call = await Call.create({
+            talker_id: talkerId,
+            listener_id: listener.id,
+            business_mode_id: businessMode.id,
+            twilio_call_sid: twilioCall.sid
+        });
         // call.twilio_call_sid = twilioCall.sid;
         // await call.save();
+
+        if (user.is_trial) {
+            setTimeout(async () => {
+                if (call.status !== 'ended') { await TwilioService.endCall(call.twilio_call_sid) }
+            }, (900 - user.trial_seconds_used) * 1000)
+        }
 
         logger.info(`WELYAT: Matching session initiated for call ${call.id}`);
 
@@ -110,12 +135,12 @@ const getActiveCall = async (req, res, next) => {
 
         const call = await Call.findOne({
             where: {
-                [require('sequelize').Op.or]: [
+                [Op.or]: [
                     { talker_id: userId },
                     { listener_id: userId }
                 ],
                 status: {
-                    [require('sequelize').Op.notIn]: ['ended', 'cancelled']
+                    [Op.notIn]: ['ended', 'cancelled']
                 }
             },
             include: [
@@ -141,7 +166,7 @@ const getMyCalls = async (req, res, next) => {
 
         const calls = await Call.findAndCountAll({
             where: {
-                [require('sequelize').Op.or]: [
+                [Op.or]: [
                     { talker_id: userId },
                     { listener_id: userId }
                 ]
@@ -185,7 +210,7 @@ const getCallDetails = async (req, res, next) => {
                 { model: User, as: 'talker', attributes: ['id', 'email', 'reputation_score'] },
                 { model: User, as: 'listener', attributes: ['id', 'email', 'reputation_score'] },
                 { model: BusinessMode },
-                { model: require('../../models/Transaction'), attributes: ['id', 'type', 'amount', 'status', 'created_at'] }
+                { model: Transaction, attributes: ['id', 'type', 'amount', 'status', 'created_at'] }
             ]
         });
 
@@ -230,7 +255,6 @@ const endCall = async (req, res, next) => {
             return res.status(400).json({ success: false, error: { message: 'Call already ended' } });
         }
 
-        const CallStateMachine = require('../../services/CallStateMachine');
         const fsm = new CallStateMachine(call);
         await fsm.end('Manually ended by user');
 
@@ -263,9 +287,6 @@ const recordCallFeedback = async (req, res, next) => {
         if (!call || call.talker_id !== talkerId) {
             return res.status(404).json({ success: false, error: { message: 'Call not found' } });
         }
-
-        const { Transaction } = require('../../models');
-        const ScoringService = require('../../services/ScoringService');
 
         // 1. Store feedback as a transaction
         await Transaction.create({

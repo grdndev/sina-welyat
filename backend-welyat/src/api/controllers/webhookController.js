@@ -1,5 +1,6 @@
-const { Call, User } = require('../../models');
+const { Call, User, BusinessMode } = require('../../models');
 const CallStateMachine = require('../../services/CallStateMachine');
+const XPCalculatorService = require('../../services/XPCalculatorService');
 const logger = require('../../config/logger');
 
 /**
@@ -38,11 +39,21 @@ const handleTwilioStatus = async (req, res, next) => {
                 if (call.status !== 'ended' && call.status !== 'cancelled') {
                     await fsm.end(`Twilio status: ${CallStatus}`);
 
+                    if (call.talker_id) {
+                        const talker = await User.findByPk(call.talker_id);
+
+                        if (talker.is_trial) {
+                            talker.trial_session_used += 1;
+                            talker.trial_seconds_used += Math.max(0, call.duration_free_seconds - 120);
+                            await talker.save();
+                        }
+                    }
+
                     // 1. Calcul du Payout précis (à la seconde)
                     // Payout = paid_seconds * (listener_rate_per_min / 60)
                     if (call.listener_id && call.duration_paid_seconds > 0) {
-                        const listener = await (require('../../models/User')).findByPk(call.listener_id);
-                        const businessMode = await (require('../../models/BusinessMode')).findByPk(call.business_mode_id);
+                        const listener = await User.findByPk(call.listener_id);
+                        const businessMode = await BusinessMode.findByPk(call.business_mode_id);
 
                         if (listener && businessMode) {
                             const ratePerMin = parseFloat(businessMode.price_per_minute_listener);
@@ -61,7 +72,6 @@ const handleTwilioStatus = async (req, res, next) => {
 
                     // 2. Génération des XP (V0)
                     // Rule: Paid -> XP = 0. Sinat: floor(free_minutes / 5)
-                    const XPCalculatorService = require('../../services/XPCalculatorService');
                     const xpGenerated = XPCalculatorService.calculateXP(call.duration_free_seconds, call.duration_paid_seconds);
 
                     if (xpGenerated > 0 && call.listener_id) {

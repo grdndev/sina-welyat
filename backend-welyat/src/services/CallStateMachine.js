@@ -1,5 +1,5 @@
 const logger = require('../config/logger');
-const BillingService = require('./BillingService');
+const CallFlowManager = require('./CallFlowManager');
 
 class CallStateMachine {
     constructor(call) {
@@ -58,7 +58,6 @@ class CallStateMachine {
     // Helper methods for specific transitions
     async start() {
         const result = await this.transitionTo('ACTIVE_FREE', 'Call started');
-        const CallFlowManager = require('./CallFlowManager');
         await CallFlowManager.onCallStarted(this.call);
         return result;
     }
@@ -72,13 +71,11 @@ class CallStateMachine {
     }
 
     async end(reason = 'Normal termination') {
-        const CallFlowManager = require('./CallFlowManager');
         CallFlowManager.stopTimers(this.call.id);
         return this.transitionTo('ENDED', reason);
     }
 
     async cancel(reason = 'Cancelled before start') {
-        const CallFlowManager = require('./CallFlowManager');
         CallFlowManager.stopTimers(this.call.id);
         return this.transitionTo('CANCELLED', reason);
     }

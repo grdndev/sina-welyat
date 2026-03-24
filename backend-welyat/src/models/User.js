@@ -71,6 +71,18 @@ const User = sequelize.define(
             type: DataTypes.BOOLEAN,
             defaultValue: true,
         },
+        is_trial: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: true
+        },
+        trial_sessions_used: {
+            type: DataTypes.INTEGER,
+            defaultValue: 0
+        },
+        trial_seconds_used: {
+            type: DataTypes.INTEGER,
+            defaultValue: 0
+        }
     },
     {
         tableName: 'users',
