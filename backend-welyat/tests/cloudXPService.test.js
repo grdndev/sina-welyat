@@ -14,7 +14,7 @@ describe("Create Redistribution", () => {
         admin = await User.create({
             email: 'admin@welyat.com',
             password_hash: 'hash',
-            role: 'both'
+            role: 'admin'
         });
 
         users.listener = await User.create({

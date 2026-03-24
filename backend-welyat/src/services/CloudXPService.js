@@ -1,6 +1,6 @@
 const { User, Transaction, Call, Redistribution, RedistributionDetail } = require('../models');
 const logger = require('../config/logger');
-const { Op } = require('sequelize');
+const { Op, fn, col } = require('sequelize');
 const { firstOfMonth } = require('../utils');
 const { sequelize } = require('../config/database');
 
@@ -41,26 +41,34 @@ class CloudXPService {
         };
     }
 
+    getEligibleUsers() {
+        return User.findAll({
+            where: {
+                role: ['listener', 'both'],
+                total_xp: {[Op.gt]: 0},
+            },
+            include: [{
+                model: Call,
+                as: 'calls_as_listener',
+                required: true,
+                where: {
+                    createdAt: { [Op.gte]: firstOfMonth()},
+                    duration_paid_seconds: { [Op.gt]: 0 }
+                }
+            }],
+            group: ['User.id', 'calls_as_listener.id'],
+            having: sequelize.where(fn('SUM', col('calls_as_listener.duration_paid_seconds')), {
+                [Op.gte]: 60
+            })
+        });
+    }
+
     async executeRedistribution(redistribution_percentage, admin_id) {
         const transaction = await sequelize.transaction();
         logger.info(`CloudXPService: Admin ${admin_id} triggered Cloud Redistribution of ${redistribution_percentage}%.`);
         try {
             const {total_payout, total_charged, total_margin} = await this.calculateCurrentMargin();
-            const eligible_users = await User.findAll({
-                where: {
-                    role: ['listener', 'both'],
-                    total_xp: {[Op.gt]: 0},
-                },
-                include: [{
-                    model: Call,
-                    as: 'calls_as_listener',
-                    required: true,
-                    where: {
-                        createdAt: { [Op.gte]: firstOfMonth()},
-                        duration_paid_seconds: { [Op.gt]: 0 }
-                    }
-                }]
-            });
+            const eligible_users = await this.getEligibleUsers();
 
             if (total_margin < 48) {
                 throw new Error("Platform health is too low.");

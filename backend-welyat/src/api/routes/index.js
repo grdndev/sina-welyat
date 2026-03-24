@@ -3,12 +3,14 @@ const path = require('path');
 const { testConnection } = require('../../config/database');
 const logger = require('../../config/logger');
 const authRoutes = require('./auth');
+const adminRoutes = require('./admin');
 const callRoutes = require('./calls');
 const webhookRoutes = require('./webhooks');
 const emergencyRoutes = require('./emergency');
 const payoutRoutes = require('./payouts');
 const { User, Call } = require('../../models');
 const { Op } = require('sequelize');
+const { requireRole, authenticateToken } = require('../../middleware/auth');
 
 const router = express.Router();
 
@@ -65,6 +67,9 @@ router.get('/api/v1/status', (req, res) => {
 
 // Authentication routes
 router.use('/api/v1/auth', authRoutes);
+
+// Admin routes
+router.use('/api/v1/admin', authenticateToken, requireRole('admin'), adminRoutes);
 
 // Call routes
 router.use('/api/v1/calls', callRoutes);
