@@ -71,7 +71,7 @@ export default function Layout({ children, home }: LayoutProps) {
       </main>
 
       {/* FOOTER */}
-      <footer className="w-full flex flex-col items-center py-4 md:py-6 px-2">
+      <footer className="w-full flex flex-col items-center py-4 md:py-2 px-2">
         <hr
           className={`w-full max-w-4xl border-t ${
             home ? 'border-accent-home' : 'border-text-primary'
