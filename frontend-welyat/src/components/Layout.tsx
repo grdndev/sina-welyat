@@ -1,18 +1,16 @@
+import { useEffect, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 import { Link } from 'react-router-dom';
-import logo from '../../assets/logo.png';
+import logo from '../assets/logo.png';
 
 interface LayoutProps extends PropsWithChildren {
   children?: React.ReactNode;
   home?: boolean;
+  backgroundImage?: string;
+  backgroundImageMobile?: string;
 }
 
-import bgImage from '../../assets/image.png';
-import bgImageMobile from '../../assets/image-mobile.png';
-
-import { useEffect, useState } from 'react';
-
-export default function Layout({ children, home }: LayoutProps) {
+export default function Layout({ children, home, backgroundImage, backgroundImageMobile }: LayoutProps) {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -22,23 +20,33 @@ export default function Layout({ children, home }: LayoutProps) {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  let style: React.CSSProperties = {};
+
+  if (home && (backgroundImage || backgroundImageMobile)) {
+    const img = isMobile && backgroundImageMobile ? backgroundImageMobile : backgroundImage;
+    if (img) {
+      style = {
+        backgroundImage: `url(${img})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+      };
+    }
+  } else if (!home) {
+    // ✅ Gradient menthe-violette par défaut si pas de backgroundImage
+    style = {
+      background: 'linear-gradient(135deg, #f0fdf4 0%, #d8b4fe 55%, #a78bfa 100%)',
+    };
+  }
+
   return (
     <div
       className={`min-h-screen flex flex-col relative ${
         home
           ? 'text-text-primary-home bg-backgound-home'
-          : 'text-text-primary bg-linear-to-br from-background-from to-background-to'
+          : 'text-text-primary'  // ✅ supprimé bg-linear-to-br, géré par style
       }`}
-      style={
-        home
-          ? {
-              backgroundImage: `url(${isMobile ? bgImageMobile : bgImage})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              backgroundRepeat: 'no-repeat',
-            }
-          : undefined
-      }
+      style={style}
     >
       {/* HEADER */}
       <header className="w-full flex flex-col md:flex-row items-center justify-between px-4 md:px-10 py-4 md:py-8 gap-4 md:gap-0">
@@ -53,19 +61,17 @@ export default function Layout({ children, home }: LayoutProps) {
           <ul className="flex flex-wrap gap-3 md:gap-6 text-xs md:text-base pt-2 md:pt-0">
             <li><Link to="#" className="hover:text-accent-home transition">Why Welyat ?</Link></li>
             <li><Link to="#" className="hover:text-accent-home transition">How It Works</Link></li>
-            <li><Link to="#" className="hover:text-accent-home transition">Pricing</Link></li>
             <li><Link to="#" className="hover:text-accent-home transition">FAQ</Link></li>
           </ul>
         </nav>
       </header>
 
-      {/* CONTENT (IMPORTANT) */}
+      {/* CONTENT */}
       <main className="flex-1 p-2 sm:p-4 md:p-8 relative">
-        {/* Overlay sombre limité au contenu central */}
         {home && (
-          <div className="absolute inset-0 rounded-3xl pointer-events-none" style={{zIndex: 0}} aria-hidden="true" />
+          <div className="absolute inset-0 rounded-3xl pointer-events-none" style={{ zIndex: 0 }} aria-hidden="true" />
         )}
-        <div className="relative" style={{zIndex: 1}}>
+        <div className="relative" style={{ zIndex: 1 }}>
           {children}
         </div>
       </main>
@@ -79,18 +85,10 @@ export default function Layout({ children, home }: LayoutProps) {
         />
         <nav>
           <ul className="flex flex-wrap justify-center gap-4 md:gap-8 text-xs md:text-sm text-text-secondary">
-            <li>
-              <Link to="#" className="hover:text-white transition">Terms of Service</Link>
-            </li>
-            <li>
-              <Link to="#" className="hover:text-white transition">Privacy Policy</Link>
-            </li>
-            <li>
-              <Link to="#" className="hover:text-white transition">Community Guidelines</Link>
-            </li>
-            <li>
-              <Link to="#" className="hover:text-white transition">Contact</Link>
-            </li>
+            <li><Link to="/termsOfService" className="hover:text-white transition">Terms of Service</Link></li>
+            <li><Link to="#" className="hover:text-white transition">Privacy Policy</Link></li>
+            <li><Link to="#" className="hover:text-white transition">Community Guidelines</Link></li>
+            <li><Link to="#" className="hover:text-white transition">Contact</Link></li>
           </ul>
         </nav>
       </footer>
