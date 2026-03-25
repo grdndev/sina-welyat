@@ -23,7 +23,7 @@ const cloudStatus = async (req, res, next) => {
     }
 }
 
-const execute = async (req, res, next) => {
+const executeRedistribution = async (req, res, next) => {
     try {
         const percentage = req.body.percentage;
 
@@ -43,7 +43,37 @@ const execute = async (req, res, next) => {
     }
 }
 
+const promoteUser = async (req, res, next) => {
+    try {
+        const user = await User.findByPk(req.params.id);
+        const force = !!req.query.force;
+
+        if (!user) {
+            return res.status(400).json({
+                success: false,
+                error: { message: "User not found" }
+            });
+        }
+
+        if (user.is_founding && !force) {
+            return res.status(400).json({
+                success: false,
+                error: { message: "User is already founding. Force it to reset duration."}
+            });
+        }
+
+        user.is_founding = true;
+        user.founding_end_date = new Date(Date.now() + 1000 * 60 * 60 * 24 * 365);
+        await user.save();
+
+        return res.status(200).send();
+    } catch (error) {
+        logger.error(`Admin promote user : ${error.message}`);
+    }
+}
+
 module.exports = {
     cloudStatus,
-    execute
+    executeRedistribution,
+    promoteUser
 }

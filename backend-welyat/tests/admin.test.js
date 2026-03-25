@@ -1,12 +1,13 @@
 const { sequelize } = require('../src/config/database');
 const { Transaction, Call, BusinessMode } = require('../src/models');
+const { v4: uuidv4 } = require('uuid');
 const app = require('../src/server');
 const jwt = require('jsonwebtoken');
 const request = require('supertest');
 const User = require('../src/models/User');
 const { firstOfMonth } = require('../src/utils');
 
-describe('WELYAT Auth API', () => {
+describe('Admin API', () => {
     let admin, adminToken, userToken;
 
     beforeAll(async () => {
@@ -28,7 +29,7 @@ describe('WELYAT Auth API', () => {
         userToken = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET || 'test_secret_key');
 
         const businessMode = await BusinessMode.create({
-            mode_name: 'OPEN',
+            mode_name: 'NORMAL',
             free_duration_minutes: 0,
             price_per_minute_client: 1,
             price_per_minute_listener: 1,
@@ -110,6 +111,47 @@ describe('WELYAT Auth API', () => {
                 .set('Authorization', `Bearer ${adminToken}`);
 
             expect(res.statusCode).toBe(400);
+        });
+    });
+
+    describe('GET /api/v1/admin/users/:id/promote-founding', () => {
+        it('should promote User', async () => {
+            expect(user.is_founding).toBe(false);
+
+            const res = await request(app).post(`/api/v1/admin/users/${user.id}/promote-founding`)
+                .set('Authorization', `Bearer ${adminToken}`);
+
+            const founding = await User.findByPk(user.id);
+
+            expect(res.statusCode).toBe(200);
+            expect(founding.is_founding).toBe(true);
+        });
+
+        it('should get an error for already founding user', async () => {
+            const founding = await User.findByPk(user.id);
+            expect(founding.is_founding).toBe(true);
+
+            const res = await request(app).post(`/api/v1/admin/users/${founding.id}/promote-founding`)
+                .set('Authorization', `Bearer ${adminToken}`);
+
+            expect(res.statusCode).toBe(400);
+        });
+
+        it('should get an error for unknown user', async () => {
+            const res = await request(app).post(`/api/v1/admin/users/${uuidv4()}/promote-founding`)
+                .set('Authorization', `Bearer ${adminToken}`);
+
+            expect(res.statusCode).toBe(400);
+        });
+
+        it('should allow forcing on already founding user', async () => {
+            const founding = await User.findByPk(user.id);
+            expect(founding.is_founding).toBe(true);
+
+            const res = await request(app).post(`/api/v1/admin/users/${founding.id}/promote-founding?force=true`)
+                .set('Authorization', `Bearer ${adminToken}`);
+
+            expect(res.statusCode).toBe(200);
         });
     });
 });

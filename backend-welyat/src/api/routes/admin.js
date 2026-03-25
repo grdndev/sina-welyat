@@ -15,6 +15,13 @@ router.get('/cloud/status', adminController.cloudStatus);
  * @desc    Redistribute XP
  * @access  Private
  */
-router.post('/cloud/execute', adminController.execute);
+router.post('/cloud/execute', adminController.executeRedistribution);
+
+/**
+ * @route   POST /api/v1/admin/users/:id/promote-founding
+ * @desc    Promote User to founding
+ * @access  Private
+ */
+router.post('/users/:id/promote-founding', adminController.promoteUser);
 
 module.exports = router;
