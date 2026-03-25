@@ -304,7 +304,6 @@ const rateCall = async (req, res, next) => {
             return res.status(400).json({ success: false, error: { message: 'Call was already rated' }});
         }
 
-        // 1. Store feedback as a transaction
         await Rating.create({
             call_id: callId,
             from_user_id: id,
@@ -315,14 +314,6 @@ const rateCall = async (req, res, next) => {
 
         if (listenerId === id) {
             ScoringService.checkTalker(talkerId);
-        }
-
-        // 3. Update Listener reputation (V0 simple average)
-        const listener = await User.findByPk(call.listener_id);
-        if (listener) {
-            // Logic to update average reputation...
-            // For V0, we just log it
-            logger.info(`Feedback recorded for listener ${listener.id}: ${rating} stars`);
         }
 
         res.status(200).json({ success: true, message: 'Feedback recorded' });
@@ -337,5 +328,5 @@ module.exports = {
     getMyCalls,
     getCallDetails,
     endCall,
-    recordCallFeedback
+    rateCall
 };

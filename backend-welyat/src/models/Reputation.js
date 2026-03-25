@@ -17,13 +17,17 @@ const Reputation = sequelize.define(
             type: DataTypes.INTEGER,
             defaultValue: 0,
         },
+        no_bad_ratings: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false
+        },
         status: {
             type: DataTypes.ENUM('in_progress', 'completed'),
             defaultValue: 'in_progress',
         },
     },
     {
-        tableName: 'ratings',
+        tableName: 'reputations',
         underscored: true,
         timestamps: true,
     }

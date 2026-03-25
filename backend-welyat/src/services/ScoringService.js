@@ -1,7 +1,6 @@
-const { Transaction, User, Call, sequelize, Rating } = require('../models');
+const { Transaction, User, Call, sequelize, Rating, Reputation } = require('../models');
 const { Op } = require('sequelize');
 const logger = require('../config/logger');
-const Reputation = require('../models/Reputation');
 
 /**
  * ScoringService - Implements WELYAT V0 Safety & Trust rules.
@@ -78,7 +77,7 @@ class ScoringService {
                         where: {
                             status: 'ended',
                             listener_id: listener.id,
-                            started_at: {[Op.gte]: sevenDaysAgo}
+                            started_at: {[Op.gte]: listener.low_reputation_since}
                         }
                     });
                     const duration = calls.reduce((sum, c) => {sum + c.duration_free_seconds + c.duration_paid_seconds}, 0);
@@ -90,6 +89,7 @@ class ScoringService {
                     await Reputation.update({
                         duration_listened_seconds: duration,
                         status: listener.low_reputation_flag ? 'in_progress' : 'completed',
+                        no_bad_ratings: !ratings,
                         where: {
                             user_id: listener.id,
                             status: 'in_progress'

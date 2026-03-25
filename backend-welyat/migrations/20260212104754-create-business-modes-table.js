@@ -9,7 +9,7 @@ module.exports = {
         autoIncrement: true,
       },
       mode_name: {
-        type: Sequelize.ENUM('normal', 'corrigé', 'tendu'),
+        type: Sequelize.ENUM('NORMAL', 'SMART', 'SHIELD', 'CRITICAL'),
         allowNull: false,
         unique: true,
       },
@@ -47,6 +47,11 @@ module.exports = {
         allowNull: false,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
       },
+      timeout_matching: {
+          type: Sequelize.INTEGER,
+          allowNull: false,
+          defaultValue: 5,
+      }
     });
 
     // Add index

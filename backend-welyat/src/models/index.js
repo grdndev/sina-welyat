@@ -4,6 +4,7 @@ const BusinessMode = require('./BusinessMode');
 const Call = require('./Call');
 const Rating = require('./Rating');
 const Transaction = require('./Transaction');
+const Reputation = require('./Reputation');
 const Redistribution = require('./Redistribution');
 const RedistributionDetail = require('./RedistributionDetail');
 
@@ -25,6 +26,10 @@ User.hasMany(Rating, { as: 'ratings_received', foreignKey: 'to_user_id' });
 Rating.belongsTo(User, { as: 'from_user', foreignKey: 'from_user_id' });
 Rating.belongsTo(User, { as: 'to_user', foreignKey: 'to_user_id' });
 
+// Reputation
+User.hasMany(Reputation, { foreignKey: 'user_id' });
+Reputation.belongsTo(User, { foreignKey: 'user_id' });
+
 // Transaction
 User.hasMany(Transaction, { foreignKey: 'user_id' });
 Transaction.belongsTo(User, { foreignKey: 'user_id' });
@@ -45,6 +50,7 @@ module.exports = {
     Call,
     Rating,
     Transaction,
+    Reputation,
     Redistribution,
     RedistributionDetail
 };

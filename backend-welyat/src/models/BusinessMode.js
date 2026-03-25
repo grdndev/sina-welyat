@@ -10,7 +10,7 @@ const BusinessMode = sequelize.define(
             primaryKey: true,
         },
         mode_name: {
-            type: DataTypes.ENUM('OPEN', 'SMART', 'SHIELD', 'CRITICAL'),
+            type: DataTypes.ENUM('NORMAL', 'SMART', 'SHIELD', 'CRITICAL'),
             allowNull: false,
         },
         free_duration_minutes: {
