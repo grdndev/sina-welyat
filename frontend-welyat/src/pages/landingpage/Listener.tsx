@@ -1,10 +1,11 @@
 import { Clock10, DollarSign, HandCoins, Plus, ShieldCheck, Star } from "lucide-react";
-import Layout from "./Layout";
+import Layout from "../../components/Layout";
 import image from "../../assets/dashboard.png";
 import { Link } from "react-router-dom";
+import background from '../../assets/bg/HomeListener.png';
 
 export default function Listener() {
-    return <Layout>
+    return <Layout home={true}  backgroundImage={background}>
         <div className="text-xl p-5 z-10">
             <div className="flex flex-col items-center justify-center gap-3 p-10">
                 <h1 className="text-4xl flex flex-col items-center justify-center font-bold tracking-wider">

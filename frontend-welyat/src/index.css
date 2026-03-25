@@ -12,8 +12,20 @@
     --color-background-from: #efeaf9;
     --color-background-to: #e6dff7;
     --color-text-primary-home:#fff;
-    --color-text-primary: #1e1e24;
+    --color-text-primary: #3E1D6D;
     --color-text-secondary: #6f6f7a;
     --color-button-from: #7a4cff;
     --color-button-to: #b78cff;
+}
+
+@layer base {
+    body {
+        background: linear-gradient(
+            135deg,
+            #f0fdf4 0%,
+            #d8b4fe 55%,
+            #a78bfa 100%
+        );
+        min-height: 100vh;
+    }
 }

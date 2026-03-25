@@ -16,16 +16,19 @@ import {
   Hash,
   Bell
 } from 'lucide-react';
-import Layout from './Layout';
+import Layout from '../../components/Layout';
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import { router } from '../../router';
+
+import background from '../../assets/bg/homePage.png';
+import backgroubndMobile from '../../assets/bg/mb_homePage.png';
 
 export default function HomePage() {
   const [talk, setTalk] = useState<boolean>(false);
 
   return (
-    <Layout home={true}>
+    <Layout home={true} backgroundImage={background} backgroundImageMobile={backgroubndMobile}>
       {/* ─── PAGE 1 : Landing ─── */}
       {talk === false && (
         <div className="text-base sm:text-lg md:text-xl p-2 sm:p-4 md:p-8 relative z-10 flex justify-center">
@@ -337,7 +340,7 @@ export default function HomePage() {
                     <strong className="text-white">$0.10</strong>&nbsp;at 10 minutes
                   </li>
                 </ul>
-                <div className="text-sm border border-white/20 text-center p-2 rounded-xl mt-auto text-white/60">
+                <div className="text-sm border border-white/20 text-center p-2 rounded-xl mt-8 text-white/60">
                   Applied even during free time
                   <br />
                   to cover infrastructure
@@ -381,8 +384,8 @@ export default function HomePage() {
                   </div>
                   {/* T=13 */}
                   <div className="flex flex-col items-center gap-3 p-4 rounded-2xl bg-white/5 border border-white/10 text-center">
-                    <div className="bg-[#5B21B6] p-[6px] rounded-full">
-                      <div className="bg-[#7C3AED] p-2 rounded-full">
+                    <div className="bg-[#AF5258] p-[6px] rounded-full">
+                      <div className="bg-[#C97569] p-2 rounded-full">
                         <Bell color="#fff" size={22} />
                       </div>
                     </div>

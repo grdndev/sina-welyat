@@ -9,6 +9,7 @@ import RedirectIfLoggedIn from "./middlewares/RedirectIfLoggedIn";
 import Register from "./pages/auth/Register";
 import Homepage from "./pages/landingpage/Homepage";
 import Listener from "./pages/landingpage/Listener";
+import TermsOfService from "./pages/support/termsOfService";
 
 export const router = createBrowserRouter([{
     element: <AuthProvider />,
@@ -33,6 +34,10 @@ export const router = createBrowserRouter([{
             ]
         },
         {
+            path: "/termsOfService",
+            element: <TermsOfService />
+        },
+        {
             element: <AuthProtection />,
             children: [
                 {
@@ -53,6 +58,6 @@ export const router = createBrowserRouter([{
                     element: <Listener />,
                 },
             ]
-        },
+        }
     ]
 }])
