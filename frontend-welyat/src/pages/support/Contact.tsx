@@ -1,76 +1,64 @@
 import Layout from '../../components/Layout';
-
-import background from '../../assets/bg/homePage.png';
 import backgroundx from '../../assets/img/contact.jpg';
 import Field from '../../components/Field';
 import Textarea from '../../components/Textera';
 import Button from '../../components/Button';
-import {
-    MapPin,
-    Phone,
-    Mail
-} from  'lucide-react';
+import { MapPin, Phone, Mail } from 'lucide-react';
+
+const IconBox = ({ children, color = '#8e5cff' }: { children: React.ReactNode; color?: string }) => (
+  <div className="size-16 rounded-xl flex justify-center items-center shrink-0"
+    style={{ background: `${color}22`, border: `1px solid ${color}44` }}>
+    {children}
+  </div>
+);
+
+const contactInfos = [
+  { icon: <MapPin color="#ee9d07" size={28} />, color: '#ee9d07', label: 'Address',  value: "785 avenue de l'alverne" },
+  { icon: <Phone color="#22A854" size={28} />,  color: '#22A854', label: 'Contact',  value: '0262 01 32 12' },
+  { icon: <Mail  color="#3BA9C3" size={28} />,  color: '#3BA9C3', label: 'Email',    value: 'support@welyat.com' },
+];
 
 export default function Contact() {
   return (
     <Layout>
-      <h1 className="text-text-primary text-2xl sm:text-3xl md:text-4xl font-bold tracking-wider text-center">
-        Contact
-      </h1>
+      <div className="max-w-6xl mx-auto px-4 py-8 flex flex-col gap-10">
 
-      <div className="mt-10 grid grid-cols-2 gap-4">
-        <div className="">
-          <img src={backgroundx} className="rounded-xl" height={500} width={500} alt="" />
-        </div>
-        <div className="bg-white/10 backdrop-blur-md border border-white/20 shadow-lg p-5 rounded-xl">
-          <h2 className="font-semibold text-2xl">Send us a message</h2>
-          <p className="m-2 text-base">
-            Your satisfaction comes first. We strive to deliver exceptional service, quality, and
-            support to ensure the best experience possible.
-          </p>
-          <form
-            action="
-            "
-          >
-            <div className="mt-10 flex flex-col gap-5">
+        <h1 className="text-text-primary text-2xl sm:text-3xl md:text-4xl font-bold tracking-wider text-center">
+          Contact
+        </h1>
+
+        {/* ── FORM + IMAGE ── */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+          <div className="rounded-2xl overflow-hidden shadow-xl border border-white/30 h-full min-h-64">
+            <img src={backgroundx} className="w-full h-full object-cover" alt="Contact" />
+          </div>
+
+          <div className="bg-white/10 backdrop-blur-md border border-white/20 shadow-lg p-6 rounded-2xl flex flex-col gap-4">
+            <div>
+              <h2 className="font-bold text-2xl text-text-primary">Send us a message</h2>
+              <p className="mt-1 text-sm text-text-secondary">
+                Your satisfaction comes first. We strive to deliver exceptional service and support.
+              </p>
+            </div>
+            <form className="flex flex-col gap-4">
               <Field title="Your name" name="name" required placeholder="John" />
-              <Field
-                title="Email"
-                name="email"
-                type="email"
-                required
-                placeholder="John@gmail.com"
-              />
-              <Textarea title="Description" name="description" required placeholder="Message" />
-              <Button name="send" typeBtn="submit" className="mt-10" />
-            </div>
-          </form>
+              <Field title="Email" name="email" type="email" required placeholder="john@gmail.com" />
+              <Textarea title="Message" name="description" required placeholder="How can we help?" rows={4} />
+              <Button name="Send message" typeBtn="submit" className='mt-10' />
+            </form>
+          </div>
         </div>
 
-        <div className="col-span-2 grid grid-cols-3 gap-4 bg-white/10 backdrop-blur-md border border-white/20 shadow-lg p-5 rounded-xl  p-2 text-center">
-            <div className='m-4 flex flex-col justify-center items-center'>
-                <div className='bg-white/10 backdrop-blur-md border border-white/20 shadow-lg size-16 rounded-xl flex justify-center items-center'>
-                <MapPin color="#ee9d07" size={30} /></div>
-                <div className='mt-2'><strong>Address</strong></div>
-                <div className='text-text-secondary'>785 avenue de l'alverne</div>
+        {/* ── CONTACT INFO ── */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-white/10 backdrop-blur-md border border-white/20 shadow-lg p-6 rounded-2xl">
+          {contactInfos.map(({ icon, color, label, value }) => (
+            <div key={label} className="flex flex-col items-center gap-3 text-center">
+              <IconBox color={color}>{icon}</IconBox>
+              <strong className="text-text-primary">{label}</strong>
+              <span className="text-text-secondary text-sm">{value}</span>
             </div>
-
-            <div className='m-4 flex flex-col justify-center items-center'>
-                <div className='bg-white/10 backdrop-blur-md border border-white/20 shadow-lg size-16 rounded-xl flex justify-center items-center'>
-                <Phone color="#22A854" size={30} /></div>
-                <div className='mt-2'><strong>Contact</strong></div>
-                <div className='text-text-secondary'>0262 01 32 12</div>
-            </div>
-
-            <div className='m-4 flex flex-col justify-center items-center'>
-                <div className='bg-white/10 backdrop-blur-md border border-white/20 shadow-lg size-16 rounded-xl flex justify-center items-center'>
-                <Mail color="#3BA9C3" size={30} /></div>
-                <div className='mt-2'><strong>Email</strong></div>
-                <div className='text-text-secondary'>John@gmail.com</div>
-            </div>
-
+          ))}
         </div>
-
 
       </div>
     </Layout>

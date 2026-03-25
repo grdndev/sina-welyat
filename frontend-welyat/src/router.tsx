@@ -9,8 +9,9 @@ import RedirectIfLoggedIn from "./middlewares/RedirectIfLoggedIn";
 import Register from "./pages/auth/Register";
 import Homepage from "./pages/landingpage/Homepage";
 import Listener from "./pages/landingpage/Listener";
-import TermsOfService from "./pages/support/termsOfService";
+import TermsOfService from "./pages/support/TermsOfService";
 import Contact from "./pages/support/Contact";
+import BecomeListener from "./pages/landingpage/BecomeListener";
 
 export const router = createBrowserRouter([{
     element: <AuthProvider />,
@@ -61,6 +62,9 @@ export const router = createBrowserRouter([{
         },{
             path: "/contact",
             element: <Contact />
-        },
+        },{
+            path:"/becomeListener",
+            element: <BecomeListener/>
+        }
     ]
 }])
