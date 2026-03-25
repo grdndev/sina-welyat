@@ -280,7 +280,6 @@ const rateCall = async (req, res, next) => {
         const { id } = req.user;
         const { id: callId } = req.params;
         const { rating, comment } = req.body;
-
         const call = await Call.findByPk(callId);
 
         if (!call || call.talker_id !== id || call.listener_id !== id) {
@@ -291,19 +290,13 @@ const rateCall = async (req, res, next) => {
             return res.status(400).json({ success: false, error: { message: 'Call was too short to be rated' } });
         }
 
-        var ratedUserId;
-
-        if (call.talker_id === id) {
-            ratedUserId = call.listener_id;
-        } else {
-            ratedUserId = call.talker_id;
-        }
+        const talkerId = call.talker_id;
+        const listenerId = call.listener_id;
 
         const isRated = Rating.count({
             where: {
                 call_id: callId,
-                from_user_id: id,
-                to_user_id: ratedUserId
+                from_user_id: id
             }
         });
 
@@ -315,13 +308,14 @@ const rateCall = async (req, res, next) => {
         await Rating.create({
             call_id: callId,
             from_user_id: id,
-            to_user_id: ratedUserId,
+            to_user_id: talkerId === id ? listenerId : talkerId,
             score: rating,
             comment: comment
         });
 
-        // 2. Check for toxic status (Async)
-        ScoringService.checkToxicTalkerStatus(talkerId).catch(err => logger.error(`Error in toxic check: ${err.message}`));
+        if (listenerId === id) {
+            ScoringService.checkTalker(talkerId);
+        }
 
         // 3. Update Listener reputation (V0 simple average)
         const listener = await User.findByPk(call.listener_id);

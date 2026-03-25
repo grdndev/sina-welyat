@@ -1,15 +1,16 @@
-const path = require('path');
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
-const logger = require('./config/logger');
-const { sequelize } = require('./config/database');
-const morganMiddleware = require('./middleware/morgan');
 const { errorHandler, notFound } = require('./middleware/errorHandler');
-const routes = require('./api/routes');
+const { sequelize } = require('./config/database');
 const callWorker = require('./workers/CallWorker');
+const cors = require('cors');
+const express = require('express');
+const helmet = require('helmet');
+const logger = require('./config/logger');
+const morganMiddleware = require('./middleware/morgan');
+const path = require('path');
+const rateLimit = require('express-rate-limit');
+const routes = require('./api/routes');
+require('./cron');
+require('dotenv').config();
 
 // Initialize Express app
 const app = express();
