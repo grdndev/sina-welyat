@@ -26,6 +26,16 @@ const handleTwilioStatus = async (req, res, next) => {
                 // L'appel est décroché, on passe en ACTIVE_FREE
                 if (call.status === 'waiting') {
                     await fsm.start();
+
+                    // If Talker is in TRIAL MODE, increment sessions_used
+                    if (call.talker_id) {
+                        const talker = await User.findByPk(call.talker_id);
+
+                        if (talker.is_trial) {
+                            talker.trial_sessions_used += 1;
+                            await talker.save();
+                        }
+                    }
                     // TODO: Déclencher les timers (Bridge Fees, Alertes) ici ou via un worker
                 }
                 break;
@@ -39,11 +49,11 @@ const handleTwilioStatus = async (req, res, next) => {
                 if (call.status !== 'ended' && call.status !== 'cancelled') {
                     await fsm.end(`Twilio status: ${CallStatus}`);
 
+                    // If Talker is in TRIAL MODE, increment seconds_used
                     if (call.talker_id) {
                         const talker = await User.findByPk(call.talker_id);
 
                         if (talker.is_trial) {
-                            talker.trial_session_used += 1;
                             talker.trial_seconds_used += Math.max(0, call.duration_free_seconds - 120);
                             await talker.save();
                         }
