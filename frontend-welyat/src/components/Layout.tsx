@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 import { Link } from 'react-router-dom';
 import logo from '../assets/logo.png';
+import { router } from '../router';
 
 interface LayoutProps extends PropsWithChildren {
   children?: React.ReactNode;
@@ -10,7 +11,12 @@ interface LayoutProps extends PropsWithChildren {
   backgroundImageMobile?: string;
 }
 
-export default function Layout({ children, home, backgroundImage, backgroundImageMobile }: LayoutProps) {
+export default function Layout({
+  children,
+  home,
+  backgroundImage,
+  backgroundImageMobile,
+}: LayoutProps) {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -33,7 +39,6 @@ export default function Layout({ children, home, backgroundImage, backgroundImag
       };
     }
   } else if (!home) {
-    // ✅ Gradient menthe-violette par défaut si pas de backgroundImage
     style = {
       background: 'linear-gradient(135deg, #f0fdf4 0%, #d8b4fe 55%, #a78bfa 100%)',
     };
@@ -42,9 +47,7 @@ export default function Layout({ children, home, backgroundImage, backgroundImag
   return (
     <div
       className={`min-h-screen flex flex-col relative ${
-        home
-          ? 'text-text-primary-home bg-backgound-home'
-          : 'text-text-primary'  // ✅ supprimé bg-linear-to-br, géré par style
+        home ? 'text-text-primary-home bg-backgound-home' : 'text-text-primary'
       }`}
       style={style}
     >
@@ -53,15 +56,29 @@ export default function Layout({ children, home, backgroundImage, backgroundImag
         <div className="flex items-center gap-3 mx-auto md:mx-0">
           <img src={logo} width={60} className="w-16 md:w-24" />
           <div className="flex flex-col items-start tracking-wider">
-            <h1 className="text-3xl md:text-5xl font-bold">WELYAT</h1>
-            <div className="text-xs md:text-base">We Listen to You Anytime</div>
+            <Link to={'/'}>
+              <h1 className="text-3xl md:text-5xl font-bold">WELYAT</h1>
+              <div className="text-xs md:text-base">We Listen to You Anytime</div>
+            </Link>
           </div>
         </div>
         <nav className="w-full md:w-auto flex justify-center md:justify-end">
           <ul className="flex flex-wrap gap-3 md:gap-6 text-xs md:text-base pt-2 md:pt-0">
-            <li><Link to="#" className="hover:text-accent-home transition">Why Welyat ?</Link></li>
-            <li><Link to="#" className="hover:text-accent-home transition">How It Works</Link></li>
-            <li><Link to="#" className="hover:text-accent-home transition">FAQ</Link></li>
+            <li>
+              <Link to="#" className="hover:text-accent-home transition">
+                Why Welyat ?
+              </Link>
+            </li>
+            <li>
+              <Link to="#" className="hover:text-accent-home transition">
+                How It Works
+              </Link>
+            </li>
+            <li>
+              <Link to="#" className="hover:text-accent-home transition">
+                FAQ
+              </Link>
+            </li>
           </ul>
         </nav>
       </header>
@@ -69,10 +86,31 @@ export default function Layout({ children, home, backgroundImage, backgroundImag
       {/* CONTENT */}
       <main className="flex-1 p-2 sm:p-4 md:p-8 relative">
         {home && (
-          <div className="absolute inset-0 rounded-3xl pointer-events-none" style={{ zIndex: 0 }} aria-hidden="true" />
+          <div
+            className="absolute inset-0 rounded-3xl pointer-events-none"
+            style={{ zIndex: 0 }}
+            aria-hidden="true"
+          />
         )}
+
         <div className="relative" style={{ zIndex: 1 }}>
-          {children}
+          <div className="text-base sm:text-lg md:text-xl p-2 sm:p-4 md:p-8 relative z-10 flex justify-center">
+            <div
+              className="absolute inset-0 max-w-5xl mx-auto left-0 right-0  rounded-3xl blur-sm"
+              style={{ zIndex: 0, top: '2rem', bottom: '2rem', pointerEvents: 'none' }}
+            />
+            <div
+              className="flex flex-col items-center justify-center gap-3 p-2 sm:p-4 md:p-4 relative w-full max-w-5xl"
+              style={{ zIndex: 2 }}
+            >
+
+            {/*Body code*/} 
+            
+            {children}
+
+
+            </div>
+          </div>
         </div>
       </main>
 
@@ -85,10 +123,26 @@ export default function Layout({ children, home, backgroundImage, backgroundImag
         />
         <nav>
           <ul className="flex flex-wrap justify-center gap-4 md:gap-8 text-xs md:text-sm text-text-secondary">
-            <li><Link to="/termsOfService" className="hover:text-white transition">Terms of Service</Link></li>
-            <li><Link to="#" className="hover:text-white transition">Privacy Policy</Link></li>
-            <li><Link to="#" className="hover:text-white transition">Community Guidelines</Link></li>
-            <li><Link to="#" className="hover:text-white transition">Contact</Link></li>
+            <li>
+              <Link to="/termsOfService" className="hover:text-white transition">
+                Terms of Service
+              </Link>
+            </li>
+            <li>
+              <Link to="#" className="hover:text-white transition">
+                Privacy Policy
+              </Link>
+            </li>
+            <li>
+              <Link to="#" className="hover:text-white transition">
+                Community Guidelines
+              </Link>
+            </li>
+            <li>
+              <Link to="/contact" className="hover:text-white transition">
+                Contact
+              </Link>
+            </li>
           </ul>
         </nav>
       </footer>
