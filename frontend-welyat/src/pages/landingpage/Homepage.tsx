@@ -76,7 +76,7 @@ export default function HomePage() {
                 </button>
 
                 <Link
-                  to="/home-listener"
+                  to="/becomeListener"
                   className="flex items-center gap-2 text-white/70 hover:text-[#F8CD8B] transition-colors text-sm"
                 >
                   Want to earn by listening? <span className="underline decoration-[#DEB99D]/50 underline-offset-4 font-semibold text-[#DEB99D]">Become a Listener</span>
