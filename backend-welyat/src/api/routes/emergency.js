@@ -4,10 +4,10 @@ const emergencyController = require('../controllers/emergencyController');
 const { authenticateToken } = require('../../middleware/auth');
 
 /**
- * @route   POST /api/v1/emergency/trigger
- * @desc    Trigger emergency procedures
+ * @route   POST /api/v1/emergency/911
+ * @desc    Signal emergency, return useful resources
  * @access  Private
  */
-router.post('/trigger', authenticateToken, emergencyController.triggerEmergency);
+router.post('/911', authenticateToken, emergencyController.triggerEmergency);
 
 module.exports = router;

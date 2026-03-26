@@ -1,32 +1,36 @@
-const { Call } = require('../../models');
-const TwilioService = require('../../services/TwilioService');
+const { Call, Emergency } = require('../../models');
+const { Op } = require('sequelize');
+const CallStateMachine = require('../../services/CallStateMachine');
 const logger = require('../../config/logger');
+const TwilioService = require('../../services/TwilioService');
 
 /**
- * @route   POST /api/v1/emergency/trigger
- * @desc    Immediate hangup and return emergency resources
+ * @route   POST /api/v1/emergency/911
+ * @desc    Signal emergency, return useful resources
  * @access  Private
  */
 const triggerEmergency = async (req, res, next) => {
     try {
         const { id: userId } = req.user;
-        const { call_id: callId } = req.body;
 
-        // 1. Trouver l'appel actif s'il y en a un
         const call = await Call.findOne({
             where: {
-                [require('sequelize').Op.or]: [{ talker_id: userId }, { listener_id: userId }],
+                [Op.or]: [{ talker_id: userId }, { listener_id: userId }],
                 status: ['waiting', 'active_free', 'alerted', 'active_paid']
             }
         });
 
+        await Emergency.create({
+            user_id: userId,
+            call_id: call ? call.id : null,
+            ip_address: req.ip
+        });
+
         if (call) {
-            // Cut call immediately
             if (call.twilio_call_sid) {
                 await TwilioService.endCall(call.twilio_call_sid);
             }
 
-            const CallStateMachine = require('../../services/CallStateMachine');
             const fsm = new CallStateMachine(call);
             await fsm.end('Emergency Triggered');
 
@@ -38,9 +42,14 @@ const triggerEmergency = async (req, res, next) => {
             success: true,
             message: 'Call terminated. Emergency resources provided below.',
             resources: {
-                US: { police: '911', suicide: '988' },
-                EU: { general: '112' },
-                International: { suicide: '988' }
+                US: {
+                    emergency: "911",
+                    suicide_prevention: "988"
+                },
+                EU: {
+                    emergency: "112",
+                    suicide_prevention: "988"
+                }
             }
         });
     } catch (error) {

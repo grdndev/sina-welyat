@@ -145,9 +145,7 @@ class BillingService {
 
     /**
      * Circuit Breaker: Check if platform margin (24h rolling) is >= 48%
-     * To avoid blocking payments, safety is set to true on edge cases
-     * NO_CHARGES_FOUND -> margin: 1
-     * SERVER_ERROR -> margin: -1
+     * To avoid blocking payments, safety is set to true on error
      */
     async checkPlatformMarginSafety() {
         try {
@@ -161,7 +159,7 @@ class BillingService {
                 where: { type: 'payout', created_at: { [Op.gte]: twentyFourHoursAgo } }
             }) || 0;
 
-            if (charge === 0) return {margin: 1, safe: true};
+            if (charge === 0) return {margin: -1, safe: false};
 
             const margin = (charge - payouts) / charge;
             return {margin, safe: margin >= 0.48};
