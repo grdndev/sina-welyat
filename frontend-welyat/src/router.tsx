@@ -12,6 +12,7 @@ import Listener from "./pages/landingpage/Listener";
 import TermsOfService from "./pages/support/TermsOfService";
 import Contact from "./pages/support/Contact";
 import BecomeListener from "./pages/landingpage/BecomeListener";
+import Requirements from "./pages/faq/Requirements";
 
 export const router = createBrowserRouter([{
     element: <AuthProvider />,
@@ -65,6 +66,9 @@ export const router = createBrowserRouter([{
         },{
             path:"/becomeListener",
             element: <BecomeListener/>
+        },{
+            path:"/requirements",
+            element: <Requirements/>
         }
     ]
 }])

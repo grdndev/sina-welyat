@@ -1,24 +1,14 @@
-'USE CLIENT';
+'use client';
 
-import {
-  ArrowRight,
-  CreditCard,
-  Clock,
-  ShieldCheck,
-  Gift,
-  CircleCheck,
-  CircleChevronRight,
-  Activity,
-  Phone,
-  Speech,
-  DoorOpen,
-  DollarSign,
-  Hash,
-  Bell
+import React, { useState } from 'react';
+import { 
+  ArrowRight, CreditCard, Clock, ShieldCheck, Gift, 
+  CircleCheck, Activity, Phone, DoorOpen, DollarSign, 
+  Hash, Bell, Heart, Sparkles 
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Layout from '../../components/Layout';
 import { Link } from 'react-router-dom';
-import { useState } from 'react';
 import { router } from '../../router';
 
 import background from '../../assets/bg/homePage.png';
@@ -27,430 +17,237 @@ import backgroubndMobile from '../../assets/bg/mb_homePage.png';
 export default function HomePage() {
   const [talk, setTalk] = useState<boolean>(false);
 
+  // Animation variants
+  const containerVars = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5, staggerChildren: 0.1 } }
+  };
+
+  const cardVars = {
+    hidden: { opacity: 0, scale: 0.95 },
+    visible: { opacity: 1, scale: 1 }
+  };
+
   return (
     <Layout home={true} backgroundImage={background} backgroundImageMobile={backgroubndMobile}>
-      {/* ─── PAGE 1 : Landing ─── */}
-      {talk === false && (
-        <div className="text-base sm:text-lg md:text-xl p-2 sm:p-4 md:p-8 relative z-10 flex justify-center">
-          <div
-            className="absolute inset-0 max-w-5xl mx-auto left-0 right-0 bg-black/50 rounded-3xl blur-sm"
-            style={{ zIndex: 0, top: '2rem', bottom: '2rem', pointerEvents: 'none' }}
-          />
-          <div
-            className="flex flex-col items-center justify-center gap-3 p-2 sm:p-4 md:p-4 relative w-full max-w-5xl"
-            style={{ zIndex: 2 }}
+      <AnimatePresence mode="wait">
+        {!talk ? (
+          /* ─── PAGE 1 : Landing ─── */
+          <motion.div 
+            key="landing"
+            variants={containerVars}
+            initial="hidden"
+            animate="visible"
+            exit={{ opacity: 0, x: -20 }}
+            className="relative z-10 flex justify-center p-4 md:p-8 min-h-[80vh] items-center"
           >
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-wider text-center">
-              <div>You don't have to</div>
-              <div>be alone tonight.</div>
-            </h1>
-
-            <div className="my-2 sm:my-4 flex flex-col items-center justify-center text-text-primary-home text-center text-sm sm:text-base">
-              <div>Talk to someone who truly listens.</div>
-              <div>Connect with a real human in seconds.</div>
-            </div>
-
-            <button
-              className="inline-flex items-center justify-center gap-2 rounded-full border border-[#42288B] bg-gradient-to-r from-[#7D2DEC] to-[#3F0DE0] py-2 px-6 text-white transition-all duration-300 ease-in-out hover:from-[#7D2DEC]/90 hover:to-[#3F0DE0]/90 hover:scale-105 hover:shadow-lg text-sm sm:text-base"
-              onClick={() => setTalk(true)}
-            >
-              Talk to someone now
-              <ArrowRight className="w-4 h-4" />
-            </button>
-
-            <div className="mt-6 sm:mt-10 text-text-primary-home text-center text-sm sm:text-base">
-              Earn by listening{' '}
-              <Link
-                to="/home-listener"
-                className="inline-flex items-center gap-1 text-[#DEB99D] cursor-pointer hover:text-text-primary-home"
-              >
-                <ArrowRight className="w-3.5 h-3.5" />
-                <span className="leading-none">Become a Listener</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
-
-            <div className="my-4 sm:my-6 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 items-stretch w-full max-w-4xl mx-auto">
-              {/* Card 1 */}
-              <div className="w-full flex gap-3 p-3 sm:p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-lg">
-                <div className="shrink-0 bg-[#5B21B6] p-[6px] rounded-full h-fit">
-                  <div className="bg-[#7C3AED] p-2 rounded-full">
-                    <Clock color="#F8CD8B" size={24} />
-                  </div>
-                </div>
-                <div>
-                  <h2 className="text-white font-bold tracking-wide text-sm sm:text-base uppercase mb-2">
-                    Your Free Time
-                  </h2>
-                  <ul className="flex flex-col gap-1.5">
-                    <li className="flex items-center gap-2 text-sm text-white/90">
-                      <Gift color="#F8CD8B" size={14} className="shrink-0" />
-                      <span>
-                        <strong className="text-[#F8CD8B]">15 minutes</strong> free to talk
-                      </span>
-                    </li>
-                    <li className="flex items-center gap-2 text-sm text-white/80">
-                      <Clock color="#c4b5fd" size={14} className="shrink-0" />
-                      First 3 calls under 2 minutes don't count
-                    </li>
-                    <li className="flex items-start gap-2 text-sm text-white/80">
-                      <Clock color="#c4b5fd" size={14} className="shrink-0 mt-0.5" />
-                      From your 4th call, only time beyond 2 minutes is deducted
-                    </li>
-                    <li className="flex items-center gap-2 text-sm font-semibold text-[#F8CD8B]">
-                      <ShieldCheck color="#F8CD8B" size={14} className="shrink-0" />
-                      You stay in control of your time
-                    </li>
-                  </ul>
-                </div>
-              </div>
-
-              {/* Card 2 */}
-              <div className="w-full flex gap-3 p-3 sm:p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-lg">
-                <div className="shrink-0 bg-[#5B21B6] p-[6px] rounded-full h-fit">
-                  <div className="bg-[#7C3AED] p-2 rounded-full">
-                    <CreditCard color="#F8CD8B" size={24} />
-                  </div>
-                </div>
-                <div>
-                  <h2 className="text-white font-bold tracking-wide text-sm sm:text-base uppercase mb-2">
-                    Pricing (Simple)
-                  </h2>
-                  <ul className="flex flex-col gap-1.5">
-                    <li className="flex items-center gap-2 text-sm text-white/80">
-                      <CircleCheck color="#F8CD8B" size={14} className="shrink-0" />
-                      No surprises
-                    </li>
-                    <li className="flex items-center gap-2 text-sm text-white/80">
-                      <CircleCheck color="#F8CD8B" size={14} className="shrink-0" />
-                      You only pay after your free time
-                    </li>
-                    <li className="flex items-center gap-2 text-sm text-white/80">
-                      <CircleCheck color="#F8CD8B" size={14} className="shrink-0" />
-                      Charged per minute
-                    </li>
-                    <li className="flex items-center gap-2 text-sm text-white/80">
-                      <CircleCheck color="#F8CD8B" size={14} className="shrink-0" />
-                      You choose to continue or stop
-                    </li>
-                  </ul>
-                </div>
-              </div>
-
-              {/* Card 3 */}
-              <div className="w-full flex gap-3 p-3 sm:p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-lg">
-                <div className="shrink-0 bg-[#5B21B6] p-[6px] rounded-full h-fit">
-                  <div className="bg-[#7C3AED] p-2 rounded-full">
-                    <Clock color="#F8CD8B" size={24} />
-                  </div>
-                </div>
-                <div>
-                  <h2 className="text-white font-bold tracking-wide text-sm sm:text-base uppercase mb-2">
-                    What Happens During a Call
-                  </h2>
-                  <ul className="flex flex-col gap-1.5">
-                    <li className="flex items-center gap-2 text-sm text-white/80">
-                      <CircleChevronRight color="#F8CD8B" size={14} className="shrink-0" />
-                      T=0 → Connected instantly to a real person
-                    </li>
-                    <li className="flex items-center gap-2 text-sm text-white/80">
-                      <CircleChevronRight color="#F8CD8B" size={14} className="shrink-0" />
-                      T=13 → Audio alert (ending soon)
-                    </li>
-                    <li className="flex items-center gap-2 text-sm text-white/80">
-                      <CircleChevronRight color="#F8CD8B" size={14} className="shrink-0" />
-                      T=15 → Press # to continue or call ends automatically
-                    </li>
-                  </ul>
-                  <p className="text-xs text-white/50 mt-2">
-                    (You can hang up anytime, no commitment)
-                  </p>
-                </div>
-              </div>
-
-              {/* Card 4 */}
-              <div className="w-full flex gap-3 p-3 sm:p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-lg">
-                <div className="shrink-0 bg-[#5B21B6] p-[6px] rounded-full h-fit">
-                  <div className="bg-[#7C3AED] p-2 rounded-full">
-                    <ShieldCheck color="#F8CD8B" size={24} />
-                  </div>
-                </div>
-                <div>
-                  <h2 className="text-white font-bold tracking-wide text-sm sm:text-base uppercase mb-2">
-                    Fair Use
-                  </h2>
-                  <p className="text-sm text-white/60 mb-1.5">
-                    To keep the platform fair for everyone
-                  </p>
-                  <ul className="flex flex-col gap-1.5">
-                    <li className="flex items-center gap-2 text-sm text-white/80">
-                      <CircleCheck color="#F8CD8B" size={14} className="shrink-0" />
-                      Real human connection, no abuse
-                    </li>
-                    <li className="flex items-center gap-2 text-sm text-white/80">
-                      <CircleCheck color="#F8CD8B" size={14} className="shrink-0" />
-                      System automatically adjusts usage to prevent exploitation
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ─── PAGE 2 : Before you start ─── */}
-      {talk && (
-        <div className="text-base sm:text-lg md:text-xl p-2 sm:p-4 md:p-8 relative z-10 flex justify-center">
-          <div
-            className="absolute inset-0 max-w-5xl mx-auto left-0 right-0 bg-black/50 rounded-3xl blur-sm"
-            style={{ zIndex: 0, top: '2rem', bottom: '2rem', pointerEvents: 'none' }}
-          />
-          <div
-            className="flex flex-col items-center justify-center gap-3 p-2 sm:p-4 md:p-4 relative w-full max-w-5xl"
-            style={{ zIndex: 2 }}
-          >
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-wider text-center">
-              Before you start
-            </h1>
-            <div className="text-sm sm:text-base text-white/50 text-center">
-              Takes <span className="text-[#F8CD8B]">10 seconds</span> to read.
-            </div>
-
-            <div className="my-4 sm:my-6 grid grid-cols-1 md:grid-cols-4 gap-4 sm:gap-6 items-stretch w-full max-w-4xl mx-auto">
-              {/* Free Time — col-span-4 */}
-              <div className="md:col-span-4 w-full flex flex-col gap-3 p-3 sm:p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-lg">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <div className="shrink-0 bg-[#5B21B6] p-[6px] rounded-full">
-                      <div className="bg-[#7C3AED] p-2 rounded-full">
-                        <Clock color="#F8CD8B" size={22} />
-                      </div>
-                    </div>
-                    <h2 className="text-white font-bold tracking-wide text-sm sm:text-base uppercase">
-                      Your Free Time
-                    </h2>
-                  </div>
-                  <div
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-purple-400/40"
-                    style={{ background: 'linear-gradient(135deg, #6D28D9, #4C1D95)' }}
-                  >
-                    <Gift color="#F8CD8B" size={14} />
-                    <span className="text-white font-bold text-xs sm:text-sm whitespace-nowrap">
-                      15 FREE MINUTES
-                    </span>
-                  </div>
-                </div>
-                <div className="w-full h-px bg-white/10" />
-                <ul className="flex flex-col gap-2">
-                  <li className="flex items-center gap-2 text-sm text-white/90">
-                    <Gift color="#F8CD8B" size={15} className="shrink-0" />
-                    <span>
-                      <strong className="text-[#F8CD8B]">15 minutes</strong> free to talk
-                    </span>
-                  </li>
-                  <li className="flex items-center gap-2 text-sm text-white/80">
-                    <Clock color="#c4b5fd" size={15} className="shrink-0" />
-                    First 3 calls under 2 minutes don't count
-                  </li>
-                  <li className="flex items-start gap-2 text-sm text-white/80">
-                    <Clock color="#c4b5fd" size={15} className="shrink-0 mt-0.5" />
-                    From your 4th call, only time beyond 2 minutes is deducted
-                  </li>
-                  <li className="flex items-center gap-2 text-sm font-semibold text-[#F8CD8B]">
-                    <ShieldCheck color="#F8CD8B" size={15} className="shrink-0" />
-                    You stay in control of your time
-                  </li>
-                </ul>
-              </div>
-
-              {/* Simple Pricing — col-span-2 */}
-              <div className="md:col-span-2 w-full flex flex-col gap-3 p-3 sm:p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-lg">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <div className="shrink-0 bg-[#5B21B6] p-[6px] rounded-full">
-                      <div className="bg-[#7C3AED] p-2 rounded-full">
-                        <DollarSign color="#F8CD8B" size={22} />
-                      </div>
-                    </div>
-                    <h2 className="text-white font-bold tracking-wide text-sm sm:text-base uppercase">
-                      Simple Pricing
-                    </h2>
-                  </div>
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/20">
-                    <span className="text-white/70 text-xs sm:text-sm whitespace-nowrap">
-                      No surprises
-                    </span>
-                  </div>
-                </div>
-                <div className="w-full h-px bg-white/10" />
-                <ul className="flex flex-col gap-2">
-                  <li className="flex items-center gap-2 text-sm text-white/80">
-                    <CircleCheck color="#F8CD8B" size={15} className="shrink-0" />
-                    You only pay after your free time
-                  </li>
-                  <li className="flex items-center gap-2 text-sm text-white/80">
-                    <CircleCheck color="#F8CD8B" size={15} className="shrink-0" />
-                    Charged per minute
-                  </li>
-                  <li className="flex items-center gap-2 text-sm text-white/80">
-                    <CircleCheck color="#F8CD8B" size={15} className="shrink-0" />
-                    You choose to continue or stop
-                  </li>
-                </ul>
-                <div className="text-sm border border-white/20 text-center p-2 rounded-xl mt-auto">
-                  <strong className="text-base">
-                    <span className="text-[#F8CD8B]">$0.33</span> per minute
-                  </strong>
-                  <br />
-                  <span className="text-white/60">after free time</span>
-                </div>
-                <p className="text-sm text-center text-white/60">
-                  ≃ <span className="text-[#F8CD8B]">$19.80 / hour</span> if you continue
+            <div className="w-full max-w-5xl flex flex-col items-center gap-8">
+              
+              {/* Hero Section */}
+              <div className="text-center space-y-4">
+                <motion.div 
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                  className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-[#F8CD8B] text-xs font-medium mb-4"
+                >
+                  <Sparkles size={14} /> 24/7 Human Support
+                </motion.div>
+                <h1 className="text-4xl md:text-6xl font-black tracking-tight text-white leading-tight">
+                  You don't have to <br />
+                  <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#F8CD8B] to-[#DEB99D]">
+                    be alone tonight.
+                  </span>
+                </h1>
+                <p className="text-gray-300 text-lg md:text-xl max-w-2xl mx-auto font-light">
+                  Talk to someone who truly listens. <br className="hidden md:block"/>
+                  Connect with a verified human in seconds.
                 </p>
               </div>
 
-              {/* Transparent Fees — col-span-2 */}
-              <div className="md:col-span-2 w-full flex flex-col gap-3 p-3 sm:p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-lg">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <div className="shrink-0 bg-[#5B21B6] p-[6px] rounded-full">
-                      <div className="bg-[#7C3AED] p-2 rounded-full">
-                        <ShieldCheck color="#F8CD8B" size={22} />
-                      </div>
-                    </div>
-                    <h2 className="text-white font-bold tracking-wide text-sm sm:text-base uppercase">
-                      Transparent Fees
-                    </h2>
-                  </div>
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/20">
-                    <span className="text-white/70 text-xs sm:text-sm whitespace-nowrap">
-                      Small connection fees
-                    </span>
-                  </div>
-                </div>
-                <div className="w-full h-px bg-white/10" />
-                <ul className="flex flex-col gap-2">
-                  <li className="flex items-center gap-2 text-sm text-white/80">
-                    <CircleChevronRight color="#F8CD8B" size={15} className="shrink-0" />
-                    <strong className="text-white">$0.10</strong>&nbsp;at call start
-                  </li>
-                  <li className="flex items-center gap-2 text-sm text-white/80">
-                    <CircleChevronRight color="#F8CD8B" size={15} className="shrink-0" />
-                    <strong className="text-white">$0.10</strong>&nbsp;at 10 minutes
-                  </li>
-                </ul>
-                <div className="text-sm border border-white/20 text-center p-2 rounded-xl mt-8 text-white/60">
-                  Applied even during free time
-                  <br />
-                  to cover infrastructure
-                </div>
-              </div>
-
-              {/* What happens — col-span-4 */}
-              <div className="md:col-span-4 w-full flex flex-col gap-3 p-3 sm:p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-lg">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <div className="shrink-0 bg-[#5B21B6] p-[6px] rounded-full">
-                      <div className="bg-[#7C3AED] p-2 rounded-full">
-                        <Activity color="#F8CD8B" size={22} />
-                      </div>
-                    </div>
-                    <h2 className="text-white font-bold tracking-wide text-sm sm:text-base uppercase">
-                      What Happens During a Call
-                    </h2>
-                  </div>
-                  <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/20">
-                    <span className="text-white/70 text-xs sm:text-sm whitespace-nowrap">
-                      You can hang up anytime — no commitment
-                    </span>
-                  </div>
-                </div>
-                <div className="w-full h-px bg-white/10" />
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  {/* T=0 */}
-                  <div className="flex flex-col items-center gap-3 p-4 rounded-2xl bg-white/5 border border-white/10 text-center">
-                    <div className="bg-[#164b35] p-[6px] rounded-full">
-                      <div className="bg-[#226142] p-2 rounded-full">
-                        <Phone color="#fff" size={22} />
-                      </div>
-                    </div>
-                    <div>
-                      <strong className="text-[#F8CD8B] text-base">T = 0</strong>
-                      <p className="text-white/80 text-sm mt-1">
-                        Connected instantly to a real person
-                      </p>
-                    </div>
-                  </div>
-                  {/* T=13 */}
-                  <div className="flex flex-col items-center gap-3 p-4 rounded-2xl bg-white/5 border border-white/10 text-center">
-                    <div className="bg-[#AF5258] p-[6px] rounded-full">
-                      <div className="bg-[#C97569] p-2 rounded-full">
-                        <Bell color="#fff" size={22} />
-                      </div>
-                    </div>
-                    <div>
-                      <strong className="text-[#F8CD8B] text-base">T = 13</strong>
-                      <p className="text-white/80 text-sm mt-1">
-                        Audio alert
-                        <span className="text-white/50"> (ending soon)</span>
-                      </p>
-                    </div>
-                  </div>
-                  {/* T=15 */}
-                  <div className="flex flex-col items-center gap-3 p-4 rounded-2xl bg-white/5 border border-white/10 text-center">
-                    <div className="bg-[#5B21B6] p-[6px] rounded-full">
-                      <div className="bg-[#7C3AED] p-2 rounded-full">
-                        <Hash color="#fff" size={22} />
-                      </div>
-                    </div>
-                    <div>
-                      <strong className="text-[#F8CD8B] text-base">T = 15</strong>
-                      <p className="text-white/80 text-sm mt-1">
-                        Press # to continue
-                        <span className="text-white/50"> (paid mode)</span>
-                        <br />
-                        <span className="text-white/50">or call ends automatically</span>
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* CTA — col-span-4 */}
-              <div className="md:col-span-4 w-full flex flex-col gap-4 items-center justify-center p-2 sm:p-4">
+              {/* Main CTA */}
+              <div className="flex flex-col items-center gap-6 w-full">
                 <button
-                  className="w-full max-w-md inline-flex flex-col items-center justify-center gap-1 rounded-full border border-[#42288B] bg-gradient-to-r from-[#7D2DEC] to-[#3F0DE0] py-3 px-8 text-white transition-all duration-300 ease-in-out hover:from-[#7D2DEC]/90 hover:to-[#3F0DE0]/90 hover:scale-105 hover:shadow-lg"
-                  onClick={() => router.navigate('/register')}
+                  onClick={() => setTalk(true)}
+                  className="group relative flex items-center gap-3 bg-gradient-to-r from-[#7D2DEC] to-[#3F0DE0] p-1 rounded-full hover:scale-105 transition-transform duration-300 shadow-[0_0_20px_rgba(125,45,236,0.4)]"
                 >
-                  <span className="inline-flex items-center gap-2 text-sm sm:text-base font-semibold">
-                    <Phone color="#ffffff" size={18} />
-                    START MY CALL
-                  </span>
-                  <span className="text-xs text-white/70">
-                    You'll be connected in a few seconds
+                  <span className="bg-transparent px-8 py-3 text-white font-bold text-lg flex items-center gap-2">
+                    Talk to someone now
+                    <ArrowRight className="group-hover:translate-x-1 transition-transform" />
                   </span>
                 </button>
 
-                <div className="flex flex-row gap-5 text-sm text-white/70 mt-5">
-                  <div className="flex items-center gap-2">
-                    <Speech color="#c4b5fd" size={18} />
-                    Real human listeners
+                <Link
+                  to="/home-listener"
+                  className="flex items-center gap-2 text-white/70 hover:text-[#F8CD8B] transition-colors text-sm"
+                >
+                  Want to earn by listening? <span className="underline decoration-[#DEB99D]/50 underline-offset-4 font-semibold text-[#DEB99D]">Become a Listener</span>
+                </Link>
+              </div>
+
+              {/* Quick Info Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full mt-8">
+                <FeatureCard 
+                  icon={<Clock className="text-[#F8CD8B]" size={24} />}
+                  title="Your Free Time"
+                  items={[
+                    { text: "15 minutes free to talk", highlight: true },
+                    { text: "First 3 calls < 2 min are free" },
+                    { text: "Stay in total control" }
+                  ]}
+                />
+                <FeatureCard 
+                  icon={<CreditCard className="text-[#F8CD8B]" size={24} />}
+                  title="Simple Pricing"
+                  items={[
+                    { text: "No hidden subscription" },
+                    { text: "Pay per minute after free time" },
+                    { text: "Stop whenever you want" }
+                  ]}
+                />
+              </div>
+            </div>
+          </motion.div>
+        ) : (
+          /* ─── PAGE 2 : Onboarding ─── */
+          <motion.div 
+            key="onboarding"
+            variants={containerVars}
+            initial="hidden"
+            animate="visible"
+            className="relative z-10 flex justify-center p-4 md:p-8"
+          >
+            <div className="w-full max-w-5xl space-y-8 bg-black/40 backdrop-blur-xl p-6 md:p-12 rounded-[2.5rem] border border-white/10 shadow-2xl">
+              <div className="text-center space-y-2">
+                <h2 className="text-3xl md:text-4xl font-bold text-white">Before you start</h2>
+                <p className="text-white/50 flex items-center justify-center gap-2">
+                  <Clock size={16} /> Takes 10 seconds to read.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Free Time Highlight */}
+                <div className="md:col-span-2 bg-gradient-to-br from-purple-900/40 to-black/40 p-6 rounded-3xl border border-purple-500/30">
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-3 bg-purple-500/20 rounded-2xl">
+                        <Gift className="text-[#F8CD8B]" />
+                      </div>
+                      <h3 className="font-bold text-xl uppercase tracking-tight text-white">Your Benefits</h3>
+                    </div>
+                    <span className="bg-[#F8CD8B] text-black px-4 py-1 rounded-full font-black text-sm">
+                      15 MINUTES FREE
+                    </span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <CircleCheck color="#c4b5fd" size={18} />
-                    No commitment
+                  <div className="grid md:grid-cols-2 gap-4 text-white/80">
+                    <p className="flex items-center gap-2"><CircleCheck size={16} className="text-green-400" /> First 3 calls under 2 min don't count</p>
+                    <p className="flex items-center gap-2"><CircleCheck size={16} className="text-green-400" /> Control everything from your dashboard</p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <DoorOpen color="#c4b5fd" size={18} />
-                    Leave anytime
+                </div>
+
+                {/* Pricing Details */}
+                <div className="bg-white/5 p-6 rounded-3xl border border-white/10 flex flex-col justify-between">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <DollarSign className="text-[#F8CD8B]" />
+                      <h3 className="font-bold text-lg uppercase text-white">Pricing</h3>
+                    </div>
+                    <div className="text-center py-6 bg-white/5 rounded-2xl">
+                      <div className="text-3xl font-black text-white">$0.33<span className="text-sm font-normal text-white/50">/min</span></div>
+                      <div className="text-xs text-white/40 mt-1">Applied after free minutes</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Infrastructure Fees */}
+                <div className="bg-white/5 p-6 rounded-3xl border border-white/10">
+                  <div className="flex items-center gap-3 mb-4">
+                    <ShieldCheck className="text-[#F8CD8B]" />
+                    <h3 className="font-bold text-lg uppercase text-white">Tech Fees</h3>
+                  </div>
+                  <ul className="space-y-3">
+                    <li className="flex justify-between text-sm text-white/70 border-b border-white/5 pb-2">
+                      <span>Call Start</span>
+                      <span className="font-bold text-white">$0.10</span>
+                    </li>
+                    <li className="flex justify-between text-sm text-white/70">
+                      <span>Every 10 mins</span>
+                      <span className="font-bold text-white">$0.10</span>
+                    </li>
+                  </ul>
+                  <p className="mt-4 text-[10px] text-white/30 italic">Covers secure VOIP infrastructure</p>
+                </div>
+
+                {/* Timeline Call */}
+                <div className="md:col-span-2 space-y-4">
+                  <h3 className="text-center font-bold text-white uppercase tracking-widest text-sm">Call Process</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <TimelineStep time="T=0" label="Connected" sub="Instant human voice" icon={<Phone size={20}/>} color="bg-green-500/20" />
+                    <TimelineStep time="T=13" label="Alert" sub="Audio notification" icon={<Bell size={20}/>} color="bg-amber-500/20" />
+                    <TimelineStep time="T=15" label="Option" sub="Press # to continue" icon={<Hash size={20}/>} color="bg-purple-500/20" />
                   </div>
                 </div>
               </div>
+
+              {/* Final CTA */}
+              <div className="flex flex-col items-center gap-4 pt-6">
+                 <button
+                  onClick={() => router.navigate('/register')}
+                  className="w-full max-w-md group bg-gradient-to-r from-[#7D2DEC] to-[#3F0DE0] py-4 rounded-full text-white font-bold shadow-xl hover:shadow-purple-500/20 transition-all"
+                >
+                  <div className="flex items-center justify-center gap-3">
+                    <Phone size={20} className="fill-current" />
+                    <span>START MY CALL NOW</span>
+                  </div>
+                  <div className="text-[10px] opacity-70 font-normal uppercase tracking-widest mt-1">Connected in ~15 seconds</div>
+                </button>
+                
+                <div className="flex flex-wrap justify-center gap-6 text-[11px] text-white/40 uppercase tracking-tighter">
+                  <span className="flex items-center gap-1"><Heart size={12}/> 100% Private</span>
+                  <span className="flex items-center gap-1"><DoorOpen size={12}/> Hang up anytime</span>
+                  <span className="flex items-center gap-1"><Activity size={12}/> Real Humans</span>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </Layout>
+  );
+}
+
+// Helper Components
+function FeatureCard({ icon, title, items }: { icon: any, title: string, items: {text: string, highlight?: boolean}[] }) {
+  return (
+    <motion.div 
+      variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}
+      className="bg-white/5 backdrop-blur-md border border-white/10 p-5 rounded-3xl hover:bg-white/10 transition-colors"
+    >
+      <div className="flex items-start gap-4">
+        <div className="p-3 bg-white/5 rounded-2xl">{icon}</div>
+        <div className="space-y-2">
+          <h3 className="text-white font-bold uppercase tracking-wider text-sm">{title}</h3>
+          <ul className="space-y-1.5">
+            {items.map((item, i) => (
+              <li key={i} className={`text-sm flex items-center gap-2 ${item.highlight ? 'text-[#F8CD8B] font-semibold' : 'text-white/60'}`}>
+                <div className={`w-1 h-1 rounded-full ${item.highlight ? 'bg-[#F8CD8B]' : 'bg-white/30'}`} />
+                {item.text}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function TimelineStep({ time, label, sub, icon, color }: { time: string, label: string, sub: string, icon: any, color: string }) {
+  return (
+    <div className="flex flex-col items-center text-center p-4 bg-white/5 rounded-2xl border border-white/5">
+      <div className={`p-3 rounded-full mb-3 ${color} text-white`}>
+        {icon}
+      </div>
+      <div className="text-[#F8CD8B] font-black text-lg">{time}</div>
+      <div className="text-white font-bold text-sm">{label}</div>
+      <div className="text-white/40 text-[11px] leading-tight">{sub}</div>
+    </div>
   );
 }
