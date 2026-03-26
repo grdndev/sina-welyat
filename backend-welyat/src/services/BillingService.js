@@ -1,6 +1,9 @@
-const StripeService = require('./StripeService');
-const { Transaction, Call, User } = require('../models');
+const { Op } = require('sequelize');
+const { Transaction, Call, User, Boost } = require('../models');
+const CallStateMachine = require('./CallStateMachine');
 const logger = require('../config/logger');
+const StripeService = require('./StripeService');
+const TwilioService = require('./TwilioService');
 
 class BillingService {
     /**
@@ -82,11 +85,19 @@ class BillingService {
             const listener = await User.findByPk(call.listener_id);
             if (listener && listener.is_founding) {
                 // Circuit Breaker: check platform margin (24h)
-                const isMarginSafe = await this.checkPlatformMarginSafety();
-                if (isMarginSafe) {
+                const {margin, safe} = await this.checkPlatformMarginSafety();
+
+                if (safe) {
                     const boost = listenerRatePerMin * 0.10;
                     payoutForThisTick += boost;
+
                     logger.info(`WELYAT: Founding Boost applied (+${boost.toFixed(3)}$) for listener ${listener.id}`);
+                    await Boost.create({
+                        user_id: listener.id,
+                        original_amount: listenerRatePerMin,
+                        boosted_amount: listenerRatePerMin + boost,
+                        margin_at_time: margin
+                    })
                 } else {
                     logger.warn(`WELYAT: Circuit Breaker active - Margin < 48%. Founding Boost paused.`);
                 }
@@ -98,9 +109,7 @@ class BillingService {
                 // if (FAIL) throw new Error('Payment failed');
             } catch (stripeError) {
                 logger.error(`Zero Debt Rule: Stripe charge failed for call ${callId}. Hanging up.`);
-                const TwilioService = require('./TwilioService');
                 await TwilioService.endCall(call.twilio_call_sid);
-                const CallStateMachine = require('./CallStateMachine');
                 const fsm = new CallStateMachine(call);
                 await fsm.end('Payment failure - Zero Debt Rule');
                 return;
@@ -112,7 +121,7 @@ class BillingService {
             call.duration_paid_seconds = (call.duration_paid_seconds || 0) + 60;
             await call.save();
 
-            // Crediter la balance de l'listener
+            // Credit listener
             if (listener) {
                 listener.balance = parseFloat(listener.balance) + payoutForThisTick;
                 await listener.save();
@@ -133,29 +142,32 @@ class BillingService {
             logger.error(`Error in WELYAT chargeMinute: ${error.message}`);
         }
     }
+
     /**
      * Circuit Breaker: Check if platform margin (24h rolling) is >= 48%
+     * To avoid blocking payments, safety is set to true on edge cases
+     * NO_CHARGES_FOUND -> margin: 1
+     * SERVER_ERROR -> margin: -1
      */
     async checkPlatformMarginSafety() {
         try {
-            const { Op } = require('sequelize');
             const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-            const revenue = await Transaction.sum('amount', {
+            const charge = await Transaction.sum('amount', {
                 where: { type: 'charge', created_at: { [Op.gte]: twentyFourHoursAgo } }
             }) || 0;
 
-            const payouts = await Call.sum('total_payout_listener', {
-                where: { ended_at: { [Op.gte]: twentyFourHoursAgo } }
+            const payouts = await Transaction.sum('amount', {
+                where: { type: 'payout', created_at: { [Op.gte]: twentyFourHoursAgo } }
             }) || 0;
 
-            if (revenue === 0) return true; // Start of day, safety first
+            if (charge === 0) return {margin: 1, safe: true};
 
-            const margin = (revenue - payouts) / revenue;
-            return margin >= 0.48;
+            const margin = (charge - payouts) / charge;
+            return {margin, safe: margin >= 0.48};
         } catch (error) {
             logger.error(`BillingService: Error checking margin safety: ${error.message}`);
-            return true; // Default to safe to avoid blocking payments
+            return {margin: -1, safe: true};
         }
     }
 }

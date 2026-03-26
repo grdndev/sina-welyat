@@ -62,7 +62,6 @@ class CallFlowManager {
                 if (currentCall.twilio_call_sid) {
                     await TwilioService.endCall(currentCall.twilio_call_sid);
                 }
-                const CallStateMachine = require('./CallStateMachine');
                 const fsm = new CallStateMachine(currentCall);
                 await fsm.end(`${freeMinutes}m Free limit reached - No conversion`);
             }

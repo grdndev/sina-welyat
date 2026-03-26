@@ -7,12 +7,17 @@ const Transaction = require('./Transaction');
 const Reputation = require('./Reputation');
 const Redistribution = require('./Redistribution');
 const RedistributionDetail = require('./RedistributionDetail');
+const Boost = require('./Boost');
 
 // User <-> Call
 User.hasMany(Call, { as: 'calls_as_talker', foreignKey: 'talker_id' });
 User.hasMany(Call, { as: 'calls_as_listener', foreignKey: 'listener_id' });
 Call.belongsTo(User, { as: 'talker', foreignKey: 'talker_id' });
 Call.belongsTo(User, { as: 'listener', foreignKey: 'listener_id' });
+
+// User 1.n Boost
+User.hasMany(Boost, { foreign_key: 'user_id' });
+Boost.belongsTo(User, { foreign_key: 'user_id' });
 
 // Call <-> BusinessMode
 BusinessMode.hasMany(Call, { foreignKey: 'business_mode_id' });
@@ -46,6 +51,7 @@ RedistributionDetail.belongsTo(User, { foreignKey: 'user_id' });
 
 module.exports = {
     User,
+    Boost,
     BusinessMode,
     Call,
     Rating,

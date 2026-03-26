@@ -16,8 +16,7 @@ class CloudXPService {
                 createdAt: {
                     [Op.gte]: firstOfMonth()
                 },
-                type: 'payout',
-                status: 'completed'
+                type: 'payout'
             }
         });
 
@@ -26,8 +25,7 @@ class CloudXPService {
                 createdAt: {
                     [Op.gte]: firstOfMonth()
                 },
-                type: 'charge',
-                status: 'completed'
+                type: 'charge'
             }
         });
 
