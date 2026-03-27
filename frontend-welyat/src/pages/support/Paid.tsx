@@ -51,7 +51,6 @@ export default function Paid() {
         </div>
 
         {/* ── CTA ── */}
-        {/* ── CTA ── */}
         <div className="flex flex-col items-center gap-3 mt-4 text-center">
           <h4 className="text-text-primary font-bold text-xl">Ready to start earning?</h4>
           <p className="text-text-secondary text-sm">Free to join · Weekly payouts · 100% Secure</p>
@@ -63,6 +62,7 @@ export default function Paid() {
             />
           </div>
         </div>
+
       </div>
     </Layout>
   );
