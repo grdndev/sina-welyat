@@ -227,9 +227,7 @@ export default function BecomeListener() {
             </ul>
           </div>
         </div>
-
-        {/* ── FAQ LINKS ── */}
-
+  
         {/* ── FAQ ── */}
         <div className=" pt-16 mb-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-10">
@@ -242,7 +240,7 @@ export default function BecomeListener() {
               </p>
             </div>
             <Link
-              to="/help"
+              to="/faq"
               className="text-xs font-bold text-white uppercase tracking-widest px-6 py-2 rounded-full transition-all duration-300 hover:scale-105"
               style={{
                 background: 'linear-gradient(135deg, #b78cff 0%, #8e5cff 50%, #5a2ccb 100%)',

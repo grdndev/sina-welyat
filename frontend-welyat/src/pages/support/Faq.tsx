@@ -30,7 +30,6 @@ export default function Faq() {
   return (
     <Layout>
       <div className="flex flex-col items-center justify-center gap-3 p-2 sm:p-4 md:p-8 w-full mx-auto"
-        // ✅ max-w réduit pour des cards plus étroites
         style={{ maxWidth: '680px' }}
       >
         <h1 className="text-text-primary text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-center">
@@ -41,7 +40,7 @@ export default function Faq() {
         </p>
 
         <div className="mt-6 flex flex-col gap-3 w-full">
-          {cards.map(({ icon, title, text, to }) => (
+          {cards.map(({ icon, title, to }) => (
             <Link to={to} key={title} className="group block w-full">
               <div
                 className="
@@ -65,7 +64,6 @@ export default function Faq() {
                   <h2 className="text-text-primary font-bold tracking-wide text-xs uppercase mb-0.5 transition-colors duration-300 group-hover:text-purple-700">
                     {title}
                   </h2>
-                  <p className="text-xs text-text-secondary leading-relaxed">{text}</p>
                 </div>
 
                 {/* Arrow — scale au hover */}
