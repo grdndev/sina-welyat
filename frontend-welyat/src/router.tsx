@@ -17,6 +17,7 @@ import Paid from "./pages/support/Paid";
 import Why from "./pages/support/Why";
 import PrivacyPolicy from "./pages/support/PrivacyPolicy";
 import CommunityGuidelines from "./pages/support/CommunityGuidelines";
+import Faq from "./pages/support/Faq";
 
 
 
@@ -88,6 +89,9 @@ export const router = createBrowserRouter([{
         },{
             path:"/communityGuidelines",
             element: <CommunityGuidelines/>
+        },{
+            path:"/faq",
+            element : <Faq />
         }
     ]
 }])
