@@ -129,7 +129,7 @@ export default function Layout({
               </Link>
             </li>
             <li>
-              <Link to="#" className="hover:text-white transition">
+              <Link to="/privacyPolicy" className="hover:text-white transition">
                 Privacy Policy
               </Link>
             </li>
