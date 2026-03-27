@@ -18,7 +18,6 @@ import {
   ChevronRight,
   ArrowRight,
 } from 'lucide-react';
-import { li, text } from 'framer-motion/client';
 import { Link } from 'react-router-dom';
 
 const IconBox = ({
@@ -44,13 +43,13 @@ export default function BecomeListener() {
     <Layout>
       <div className="max-w-6xl mx-auto px-4 py-8 flex flex-col gap-16">
         {/* ── HERO ── */}
-        <div className="bg-white/10 backdrop-blur-md border border-white/30 shadow-lg rounded-2xl p-6 flex flex-col md:flex-row gap-6 items-center">
+        <div className=" bg-white/30 backdrop-blur-md border border-white/30 shadow-lg rounded-2xl p-6 flex flex-col md:flex-row gap-6 items-center">
           {/* Contenu texte */}
           <div className="flex flex-col gap-6 flex-1">
             <span className="text-xs font-bold uppercase tracking-widest text-primary bg-primary/10 px-4 py-1 rounded-full w-fit">
               Now hiring listeners
             </span>
-            <h1 className="text-text-primary text-3xl sm:text-4xl md:text-5xl font-bold leading-tight">
+           <h1 className="text-text-primary text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
               Become a <span style={{ color: '#8e5cff' }}>Listener</span>
             </h1>
             <p className="text-text-secondary text-lg">
@@ -87,7 +86,7 @@ export default function BecomeListener() {
         </div>
 
         {/* ── EARNINGS ── */}
-        <div className="bg-white/10 backdrop-blur-md border border-white/30 shadow-lg rounded-2xl p-6 flex flex-col gap-6">
+        <div className=" bg-white/30 backdrop-blur-md border border-white/30 shadow-lg rounded-2xl p-6 flex flex-col gap-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
               <h2 className="text-text-primary font-bold text-xl">Earnings</h2>
@@ -101,14 +100,14 @@ export default function BecomeListener() {
             </div>
             <div className="flex gap-4 text-sm font-medium text-text-secondary">
               <span className="flex items-center gap-2">
-                <IconBox color="#FDD98B">
-                  <Flame fill="#FDD98B" color="#FDD98B" size={16} />
+                <IconBox color="#2196F3">
+                  <Flame fill="#2196F3" color="#2196F3" size={16} />
                 </IconBox>
                 Tips = 100% yours
               </span>
               <span className="flex items-center gap-2">
-                <IconBox color="#FDD98B">
-                  <Zap fill="#FDD98B" color="#FDD98B" size={16} />
+                <IconBox color="#2196F3">
+                  <Zap fill="#2196F3" color="#2196F3" size={16} />
                 </IconBox>
                 XP = extra rewards
               </span>
@@ -144,8 +143,8 @@ export default function BecomeListener() {
 
           <div className="flex flex-col gap-2 text-sm text-text-secondary">
             <span className="flex items-center gap-2">
-              <IconBox color="#FDD98B">
-                <TriangleAlert fill="#FDD98B" color="#502F7E" size={16} />
+              <IconBox color="#2196F3">
+                <TriangleAlert fill="#2196F3" color="#502F7E" size={16} />
               </IconBox>
               Based on <strong className="text-text-primary mx-1">active call time only</strong>{' '}
               (not waiting time)
@@ -161,11 +160,13 @@ export default function BecomeListener() {
 
         {/* ── BOTTOM ROW ── */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+
           {/* What you'll do */}
-          <div className="bg-white/10 backdrop-blur-md border border-white/30 shadow-lg rounded-2xl p-6">
+          <div className=" bg-white/30 backdrop-blur-md border border-white/30 shadow-lg rounded-2xl p-6">
             <h3 className="flex items-center gap-3 font-bold text-text-primary text-lg mb-4">
-              <IconBox color="#FDD98B">
-                <Heart fill="#FDD98B" color="#FDD98B" size={18} />
+              <IconBox color="#2196F3">
+                <Heart fill="#2196F3" color="#2196F3" size={18} />
               </IconBox>
               What you'll do
             </h3>
@@ -190,10 +191,10 @@ export default function BecomeListener() {
           </div>
 
           {/* Safety */}
-          <div className="bg-white/10 backdrop-blur-md border border-white/30 shadow-lg rounded-2xl p-6">
+          <div className="bg-white/30 backdrop-blur-md border border-white/30 shadow-lg rounded-2xl p-6">
             <h3 className="flex items-center gap-3 font-bold text-text-primary text-lg mb-4">
-              <IconBox color="#FDD98B">
-                <Shield fill="#FDD98B" color="#FDD98B" size={18} />
+              <IconBox color="#2196F3">
+                <Shield fill="#2196F3" color="#2196F3" size={18} />
               </IconBox>
               Your safety matters
             </h3>
@@ -205,9 +206,9 @@ export default function BecomeListener() {
                   label: 'No personal information shared',
                 },
                 {
-                  icon: <ShieldCheck color="#FDD98B" size={16} />,
+                  icon: <ShieldCheck color="#2196F3" size={16} />,
                   label: 'Secure & automatic payments',
-                  color: '#FDD98B',
+                  color: '#2196F3',
                 },
                 {
                   icon: <Heart fill="#C954AA" color="#C954AA" size={16} />,
@@ -272,8 +273,8 @@ export default function BecomeListener() {
                 text: 'Privacy Policy',
                 sub: 'Your safety first',
                 path: '/privacyPolicy',
-                icon: <Shield color="#FDD98B" size={22} />,
-                color: '#FDD98B',
+                icon: <Shield color="#2196F3" size={22} />,
+                color: '#2196F3',
               },
               {
                 text: 'XP & Rewards',
@@ -286,7 +287,7 @@ export default function BecomeListener() {
               <Link
                 key={item.text}
                 to={item.path}
-                className="group flex flex-col gap-4 p-5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/30 shadow-lg transition-all duration-300 hover:scale-105 hover:bg-white/20"
+                className="group flex flex-col gap-4 p-5 rounded-2xl bg-white/30 backdrop-blur-md border border-white/30 shadow-lg transition-all duration-300 hover:scale-105 hover:bg-white/20"
               >
                 {/* Icône — même style que IconBox */}
                 <div

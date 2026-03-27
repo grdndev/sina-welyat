@@ -27,12 +27,12 @@ export default function TermsOfService() {
     <Layout>
       <div className="flex flex-col items-center justify-center gap-3 p-2 sm:p-4 md:p-8 w-full max-w-5xl mx-auto">
 
-        <h1 className="text-text-primary text-2xl sm:text-3xl md:text-4xl font-bold tracking-wider text-center">
-          Terms of Services
+        <h1 className="text-text-primary text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
+          Terms of <span style={{ color: '#8e5cff' }} > Services </span>
         </h1>
         <p className="text-text-secondary">Clear rules. Full transparency. Always in control.</p>
         <div className="py-2 px-5 rounded-full bg-white/20 backdrop-blur-md border border-white/30 shadow-lg text-sm">
-          Last updated: April 2026
+         <strong>Last updated: April 2026</strong>
         </div>
 
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
