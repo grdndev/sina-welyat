@@ -16,55 +16,56 @@ import Requirements from "./pages/support/Requirements";
 import Paid from "./pages/support/Paid";
 import Why from "./pages/support/Why";
 import PrivacyPolicy from "./pages/support/PrivacyPolicy";
+import CommunityGuidelines from "./pages/support/CommunityGuidelines";
 
 
 
 export const router = createBrowserRouter([{
-    element: <AuthProvider />,
-    errorElement: <Error />,
+    element: <AuthProvider/>,
+    errorElement: <Error/>,
     children: [
         {
             path: "/login",
-            element: <Login />
+            element: <Login/>
         },
         {
             path: "/register",
-            element: <Register />
+            element: <Register/>
         },
         {
             path: "/",
-            element: <RedirectIfLoggedIn />,
+            element: <RedirectIfLoggedIn/>,
             children: [
                 {
                     path: "/",
-                    element: <Homepage />,
+                    element: <Homepage/>,
                 },
             ]
         },
         {
-            element: <AuthProtection />,
+            element: <AuthProtection/>,
             children: [
                 {
                     path: "/admin",
-                    element: <DashboardAdmin />
+                    element: <DashboardAdmin/>
                 },
                 {
                     path: "/listener",
-                    element: <DashboardListener />
+                    element: <DashboardListener/>
                 },
             ]
         },{
             path: "/",
-            element: <RedirectIfLoggedIn />,
+            element: <RedirectIfLoggedIn/>,
             children: [
                 {
                     path: "/home-listener",
-                    element: <Listener />,
+                    element: <Listener/>,
                 },
             ]
         },{
             path: "/termsOfService",
-            element: <TermsOfService />
+            element: <TermsOfService/>
         },{
             path: "/contact",
             element: <Contact />
@@ -76,14 +77,17 @@ export const router = createBrowserRouter([{
             element: <Requirements/>
         },{
             path:"/paid",
-            element: <Paid />
+            element: <Paid/>
         },
         {
             path:"/why",
-            element: <Why />
+            element: <Why/>
         },{
             path:"/privacyPolicy",
-            element:<PrivacyPolicy />
+            element:<PrivacyPolicy/>
+        },{
+            path:"/communityGuidelines",
+            element: <CommunityGuidelines/>
         }
     ]
 }])
