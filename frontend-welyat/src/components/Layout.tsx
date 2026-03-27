@@ -70,12 +70,12 @@ export default function Layout({
               </Link>
             </li>
             <li>
-              <Link to="#" className="hover:text-accent-home transition">
+              <Link to="/becomeListener" className="hover:text-accent-home transition">
                 How It Works
               </Link>
             </li>
             <li>
-              <Link to="#" className="hover:text-accent-home transition">
+              <Link to="/faq" className="hover:text-accent-home transition">
                 FAQ
               </Link>
             </li>
