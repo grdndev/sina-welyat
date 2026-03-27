@@ -15,6 +15,7 @@ import BecomeListener from "./pages/landingpage/BecomeListener";
 import Requirements from "./pages/support/Requirements";
 import Paid from "./pages/support/Paid";
 import Why from "./pages/support/Why";
+import PrivacyPolicy from "./pages/support/PrivacyPolicy";
 
 
 
@@ -80,6 +81,9 @@ export const router = createBrowserRouter([{
         {
             path:"/why",
             element: <Why />
+        },{
+            path:"/privacyPolicy",
+            element:<PrivacyPolicy />
         }
     ]
 }])
