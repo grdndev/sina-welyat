@@ -14,6 +14,8 @@ import Contact from "./pages/support/Contact";
 import BecomeListener from "./pages/landingpage/BecomeListener";
 import Requirements from "./pages/support/Requirements";
 import Paid from "./pages/support/Paid";
+import Why from "./pages/support/Why";
+
 
 
 export const router = createBrowserRouter([{
@@ -74,6 +76,10 @@ export const router = createBrowserRouter([{
         },{
             path:"/paid",
             element: <Paid />
+        },
+        {
+            path:"/why",
+            element: <Why />
         }
     ]
 }])

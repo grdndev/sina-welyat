@@ -65,7 +65,7 @@ export default function Layout({
         <nav className="w-full md:w-auto flex justify-center md:justify-end">
           <ul className="flex flex-wrap gap-3 md:gap-6 text-xs md:text-base pt-2 md:pt-0">
             <li>
-              <Link to="#" className="hover:text-accent-home transition">
+              <Link to="/why" className="hover:text-accent-home transition">
                 Why Welyat ?
               </Link>
             </li>

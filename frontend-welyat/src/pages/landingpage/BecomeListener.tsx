@@ -44,8 +44,9 @@ export default function BecomeListener() {
     <Layout>
       <div className="max-w-6xl mx-auto px-4 py-8 flex flex-col gap-16">
         {/* ── HERO ── */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
-          <div className="flex flex-col gap-6">
+        <div className="bg-white/10 backdrop-blur-md border border-white/30 shadow-lg rounded-2xl p-6 flex flex-col md:flex-row gap-6 items-center">
+          {/* Contenu texte */}
+          <div className="flex flex-col gap-6 flex-1">
             <span className="text-xs font-bold uppercase tracking-widest text-primary bg-primary/10 px-4 py-1 rounded-full w-fit">
               Now hiring listeners
             </span>
@@ -79,7 +80,8 @@ export default function BecomeListener() {
             </div>
           </div>
 
-          <div className="rounded-2xl overflow-hidden shadow-xl border border-white/30 h-80">
+          {/* Image */}
+          <div className="rounded-2xl overflow-hidden shadow-xl border border-white/30 w-full md:w-80 lg:w-96 h-80 flex-shrink-0">
             <img src={imgCall} alt="Listener" className="w-full h-full object-cover object-top" />
           </div>
         </div>
@@ -228,7 +230,7 @@ export default function BecomeListener() {
         {/* ── FAQ LINKS ── */}
 
         {/* ── FAQ ── */}
-        <div className="border-t border-white/10 pt-16 mb-8">
+        <div className=" pt-16 mb-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-10">
             <div className="text-center md:text-left">
               <h4 className="text-text-primary font-bold text-2xl tracking-tight">
@@ -305,7 +307,7 @@ export default function BecomeListener() {
 
                 {/* Footer hover */}
                 <div
-                  className="flex items-center gap-1 text-xs font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300"
+                  className="flex items-center gap-1 text-xs font-bold uppercase tracking-widest    transition-all duration-300"
                   style={{ color: item.color }}
                 >
                   Read more <ArrowRight size={12} />

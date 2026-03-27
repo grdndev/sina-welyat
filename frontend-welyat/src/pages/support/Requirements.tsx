@@ -88,7 +88,7 @@ export default function Requirements() {
       <img
         src={img}
         alt=""
-        className="m-4 rounded-2xl overflow-hidden shadow-xl border border-white/30"
+        className="m-4 rounded-2xl overflow-hidden shadow-xl border-2 border-rounded-2xl border-white/30"
       />
 
       <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
@@ -112,7 +112,7 @@ export default function Requirements() {
       {/* ── Start Listening ── */}
       <div className="mt-10 flex flex-col items-center gap-5 py-10 text-center">
         <h3 className="text-text-primary text-3xl font-bold tracking-wide">
-          Start Listening.  Grow. Earn.
+          Start Listening. Grow. Earn.
         </h3>
 
         {/* Pills simples */}
@@ -133,10 +133,10 @@ export default function Requirements() {
         {/* Steps */}
         <Link
           to="/register"
-          className="flex items-center gap-2 text-text-secondary text-sm hover:text-text-primary transition-colors"
+          className="flex items-center gap-2 text-text-primary text-base hover:text-shadow-text-primary-home transition-colors"
         >
-          Simple sign-up · Voice test · Get approved in 24h
-          <ArrowRight size={16} style={{ color: '#8e5cff' }} />
+          <span>Simple sign-up · Voice test · Get approved in 24h</span>
+          <ArrowRight size={16} className="text-[#8e5cff]" />
         </Link>
       </div>
     </Layout>
