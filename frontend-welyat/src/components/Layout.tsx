@@ -134,7 +134,7 @@ export default function Layout({
               </Link>
             </li>
             <li>
-              <Link to="#" className="hover:text-white transition">
+              <Link to="/communityGuidelines" className="hover:text-white transition">
                 Community Guidelines
               </Link>
             </li>
