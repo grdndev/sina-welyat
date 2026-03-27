@@ -80,7 +80,7 @@ const cards = [
 export default function Requirements() {
   return (
     <Layout>
-      <h1 className="text-text-primary text-2xl sm:text-3xl md:text-4xl font-bold tracking-wider text-center">
+       <h1 className="text-text-primary text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
         What Are the <span className="text-[#8e5cff] mr-2"> Requirements</span>?
       </h1>
       <p className="text-text-secondary text-2xl"> Become a Premium Listener on Welyat</p>

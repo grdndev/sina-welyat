@@ -23,8 +23,8 @@ export default function Paid() {
       <div className="max-w-6xl mx-auto px-4 py-8 flex flex-col gap-10">
         {/* ── HEADER ── */}
         <div className="flex flex-col items-center gap-2 text-center">
-          <h1 className="text-text-primary text-2xl sm:text-3xl md:text-4xl font-bold tracking-wider">
-            How do I get <span style={{ color: '#8e5cff' }}>paid</span>?
+          <h1 className="text-text-primary text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
+            How do I get <span style={{ color: '#8e5cff' }} className='m-2'>paid</span>?
           </h1>
           <p className="text-text-secondary text-lg">Weekly bank payouts, fast and secure</p>
         </div>
@@ -41,7 +41,7 @@ export default function Paid() {
           {cards.map(({ title, image, text }) => (
             <div
               key={title}
-              className="flex flex-col items-center gap-4 p-6 rounded-2xl bg-white/10 backdrop-blur-md border border-white/30 shadow-lg text-center transition-all duration-300 hover:scale-105 hover:bg-white/20"
+              className="flex flex-col items-center gap-4 p-6 rounded-2xl  bg-white/30 backdrop-blur-md border border-white/30 shadow-lg text-center transition-all duration-300 hover:scale-105 hover:bg-white/20"
             >
               <img src={image} alt={title} className="w-16 h-16 object-contain" />
               <h2 className="text-text-primary font-bold text-base">{title}</h2>
@@ -62,7 +62,6 @@ export default function Paid() {
             />
           </div>
         </div>
-
       </div>
     </Layout>
   );
