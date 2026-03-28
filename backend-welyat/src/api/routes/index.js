@@ -4,6 +4,7 @@ const { testConnection } = require('../../config/database');
 const logger = require('../../config/logger');
 const authRoutes = require('./auth');
 const adminRoutes = require('./admin');
+const disclaimerRoutes = require('./disclaimer');
 const callRoutes = require('./calls');
 const webhookRoutes = require('./webhooks');
 const emergencyRoutes = require('./emergency');
@@ -68,6 +69,9 @@ router.get('/api/v1/status', (req, res) => {
 
 // Authentication routes
 router.use('/api/v1/auth', authRoutes);
+
+// Authentication routes
+router.use('/api/v1/disclaimer', disclaimerRoutes);
 
 // Admin routes
 router.use('/api/v1/admin', authenticateToken, requireRole('admin'), adminRoutes);

@@ -82,6 +82,10 @@ const User = sequelize.define(
         trial_seconds_used: {
             type: DataTypes.INTEGER,
             defaultValue: 0
+        },
+        accepted_disclaimer: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false
         }
     },
     {

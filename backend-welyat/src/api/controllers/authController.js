@@ -1,22 +1,7 @@
 const User = require('../../models/User');
-const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const logger = require('../../config/logger');
-
-/**
- * Generate JWT token
- */
-const generateToken = (user) => {
-    return jwt.sign(
-        {
-            id: user.id,
-            email: user.email,
-            role: user.role,
-        },
-        process.env.JWT_SECRET,
-        { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
-    );
-};
+const { generateToken } = require('../../utils');
 
 /**
  * @route   POST /api/v1/auth/register

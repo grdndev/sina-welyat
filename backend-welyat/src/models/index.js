@@ -2,6 +2,8 @@
 const Boost = require('./Boost');
 const BusinessMode = require('./BusinessMode');
 const Call = require('./Call');
+const DisclaimerAccepted = require('./DisclaimerAccepted');
+const DisclaimerVersion = require('./DisclaimerVersion');
 const Emergency = require('./Emergency');
 const Rating = require('./Rating');
 const Redistribution = require('./Redistribution');
@@ -17,18 +19,24 @@ Call.belongsTo(User, { as: 'talker', foreignKey: 'talker_id' });
 Call.belongsTo(User, { as: 'listener', foreignKey: 'listener_id' });
 
 // User 1.n Boost
-User.hasMany(Boost, { foreign_key: 'user_id' });
-Boost.belongsTo(User, { foreign_key: 'user_id' });
+User.hasMany(Boost, { foreignKey: 'user_id' });
+Boost.belongsTo(User, { foreignKey: 'user_id' });
 
 // Call <-> BusinessMode
 BusinessMode.hasMany(Call, { foreignKey: 'business_mode_id' });
 Call.belongsTo(BusinessMode, { foreignKey: 'business_mode_id' });
 
+// Disclaimer
+DisclaimerVersion.hasMany(DisclaimerAccepted, { foreignKey: 'disclaimer_version_id' });
+DisclaimerAccepted.belongsTo(DisclaimerVersion, { foreignKey: 'disclaimer_version_id' });
+User.hasMany(DisclaimerAccepted, { foreignKey: 'user_id' });
+DisclaimerAccepted.belongsTo(User, { foreignKey: 'user_id' });
+
 // Emergency
-User.hasMany(Emergency, { foreign_key: 'user_id' });
-Emergency.belongsTo(User, { foreign_key: 'user_id' });
-Call.hasMany(Emergency, { foreign_key: 'call_id' });
-Emergency.belongsTo(Call, { foreign_key: 'call_id' });
+User.hasMany(Emergency, { foreignKey: 'user_id' });
+Emergency.belongsTo(User, { foreignKey: 'user_id' });
+Call.hasMany(Emergency, { foreignKey: 'call_id' });
+Emergency.belongsTo(Call, { foreignKey: 'call_id' });
 
 // Rating
 Call.hasMany(Rating, { foreignKey: 'call_id' });

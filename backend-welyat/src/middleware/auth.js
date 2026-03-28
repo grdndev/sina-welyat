@@ -30,11 +30,28 @@ const authenticateToken = (req, res, next) => {
 };
 
 /**
+ * Middleware to check if user has accepted disclaimers
+ */
+const requireDisclaimer = () => {
+    return (req, res, next) => {
+        if (!req.user.disclaimer) {
+            return res.status(403).json({
+                success: false,
+                data: { redirect: `${process.env.FRONT_URL}/disclaimers` },
+                error: { message: 'Check disclaimer' },
+            });
+        }
+
+        next();
+    };
+};
+
+/**
  * Middleware to check if user has specific role
  */
 const requireRole = (...roles) => {
     return (req, res, next) => {
-        if (!req.user) {
+        if (!req.user.role) {
             return res.status(401).json({
                 success: false,
                 error: { message: 'Authentication required' },

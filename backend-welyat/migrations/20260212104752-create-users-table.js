@@ -69,6 +69,22 @@ module.exports = {
         type: Sequelize.BOOLEAN,
         defaultValue: true,
       },
+      is_trial: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: true
+      },
+      trial_sessions_used: {
+        type: Sequelize.INTEGER,
+        defaultValue: 0
+      },
+      trial_seconds_used: {
+        type: Sequelize.INTEGER,
+        defaultValue: 0
+      },
+      accepted_disclaimer: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false,
+      },
       created_at: {
         type: Sequelize.DATE,
         allowNull: false,
