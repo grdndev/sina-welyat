@@ -1,45 +1,61 @@
-import { AtSign, Eye, EyeOff, KeyRound } from 'lucide-react';
-import Layout from '../../components/Layout';
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import Button from '../../components/Button';
+import { AtSign, Eye, EyeOff, KeyRound, MoveRight } from "lucide-react";
+import { useAuth } from "../../middlewares/Auth";
+import Layout from "../../components/Layout";
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import Button from "../../components/Button";
 
 type FormData = {
-  email: string;
-  password: string;
-};
+    email: string;
+    password: string;
+}
 
 export default function Login() {
-  const [error, setError] = useState('');
-  const [formData, setFormData] = useState<FormData>({ email: '', password: '' });
-  const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+    const { login } = useAuth();
+    const [error, setError] = useState('');
+    const [formData, setFormData] = useState<FormData>({email: '', password: ''});
+    const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
-  function validate() {
-    if (!formData?.email || !formData?.password) {
-      throw new Error('Please fill all the fields');
+    function validate() {
+        if (!formData?.email || !formData?.password) {
+            throw new Error("Please fill all the fields");
+        }
     }
-  }
 
-  function handleFormData(type: string, value: string) {
-    setFormData({ ...formData, [type]: value });
-  }
-
-  async function handleFormSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      validate();
-      // await login(formData);
-    } catch (error: any) {
-      setError(error.message ?? 'An error occurred, try later');
-    } finally {
-      setLoading(false);
+    function handleFormData(type: string, value: string) {
+        setFormData({...formData, [type]: value});
     }
-  }
 
-  return (
-    <Layout>
+    async function handleFormSubmit(e: React.SubmitEvent) {
+        e.preventDefault();
+        setLoading(true);
+        try {
+            validate()
+
+            if (formData.email.includes("admin")) {
+                login({
+                    id: 0,
+                    name: "Admin",
+                    email: formData.email,
+                    role: "admin"
+                }, {});
+            } else {
+                login({
+                    id: 0,
+                    name: "Listener",
+                    email: formData.email,
+                    role: "listener"
+                }, {});
+            }
+        } catch (error: any) {
+            setError(error.message ?? "An error occured, try later");
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    return <Layout>
       <div className="w-full flex items-center justify-center -m-2 sm:-m-4 md:-m-4" style={{ minHeight: 'calc(100vh - 200px)' }}>
         <div className="flex w-full max-w-md bg-white/30 backdrop-blur-md border border-white/30 shadow-2xl rounded-3xl overflow-hidden">
 
@@ -126,5 +142,4 @@ export default function Login() {
         </div>
       </div>
     </Layout>
-  );
 }
