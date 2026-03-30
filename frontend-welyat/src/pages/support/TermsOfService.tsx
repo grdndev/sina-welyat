@@ -3,6 +3,7 @@ import {
   IdCard, HatGlasses, CircleX, TriangleAlert, Mail,
 } from 'lucide-react';
 import Layout from '../../components/Layout';
+import pdf from '../../assets/pdf/welyat_terms_of_services.pdf';
 
 const IconBox = ({ children }: { children: React.ReactNode }) => (
   <div className="shrink-0 h-fit p-2 rounded-xl"
@@ -63,6 +64,8 @@ export default function TermsOfService() {
               background: 'linear-gradient(135deg, #b78cff 0%, #8e5cff 50%, #5a2ccb 100%)',
               boxShadow: '0 4px 20px rgba(90, 44, 203, 0.4)',
             }}
+            onClick={()=> open(pdf) }
+
           >
             Download PDF
           </button>

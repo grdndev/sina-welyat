@@ -18,6 +18,7 @@ import Why from "./pages/support/Why";
 import PrivacyPolicy from "./pages/support/PrivacyPolicy";
 import CommunityGuidelines from "./pages/support/CommunityGuidelines";
 import Faq from "./pages/support/Faq";
+import RegisterListener from "./pages/auth/Register-listener";
 
 
 
@@ -32,6 +33,9 @@ export const router = createBrowserRouter([{
         {
             path: "/register",
             element: <Register/>
+        }, {
+            path: "/register-listener",
+            element: <RegisterListener/>
         },
         {
             path: "/",
