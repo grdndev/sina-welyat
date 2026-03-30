@@ -75,7 +75,7 @@ export default function BecomeListener() {
               ))}
             </ul>
             <div className="w-48">
-              <Button name="Apply now" typeBtn="button" fn={() => router.navigate('/register')} />
+              <Button name="Apply now" typeBtn="button" fn={() => router.navigate('/register-listener')} />
             </div>
           </div>
 
