@@ -18,5 +18,19 @@ router.get('/me/reputation', usersController.getReputation);
  */
 router.get('/me/xp', requireRole('listener', 'both'), usersController.getXp);
 
+/**
+ * @route   GET /api/v1/users/me/data
+ * @desc    Get user data
+ * @access  Private
+ */
+router.get('/me/data', usersController.getData);
+
+/**
+ * @route   DELETE /api/v1/users/me
+ * @desc    Delete user account
+ * @access  Private
+ */
+router.delete('/me', usersController.deleteUser);
+
 
 module.exports = router;

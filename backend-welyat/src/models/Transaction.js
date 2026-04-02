@@ -11,7 +11,7 @@ const Transaction = sequelize.define(
         },
         user_id: {
             type: DataTypes.UUID,
-            allowNull: false,
+            allowNull: true,
         },
         call_id: {
             type: DataTypes.UUID,

@@ -15,7 +15,7 @@ const RedistributionDetail = sequelize.define(
         },
         user_id: {
             type: DataTypes.UUID,
-            allowNull: false,
+            allowNull: true,
         },
         xp_converted: {
             type: DataTypes.INTEGER,
@@ -27,7 +27,7 @@ const RedistributionDetail = sequelize.define(
         }
     },
     {
-        tableName: 'xp_redistribution_details',
+        tableName: 'redistribution_details',
         underscored: true,
         timestamps: true,
     }

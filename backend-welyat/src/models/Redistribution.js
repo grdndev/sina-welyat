@@ -39,7 +39,7 @@ const Redistribution = sequelize.define(
         }
     },
     {
-        tableName: 'xp_redistributions',
+        tableName: 'redistributions',
         underscored: true,
         timestamps: true,
     }

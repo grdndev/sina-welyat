@@ -1,6 +1,6 @@
 const { Op } = require("sequelize");
 const logger = require("../../config/logger");
-const { User, Call, RedistributionDetail, Redistribution, Rating, Reputation } = require("../../models");
+const { User, Call, RedistributionDetail, Redistribution, Rating, Reputation, Transaction, Emergency } = require("../../models");
 
 /**
  * Get user reputation
@@ -107,7 +107,101 @@ const getXp = async (req, res, next) => {
     }
 }
 
+const getData = async (req, res, next) => {
+    try {
+        const user = await User.findByPk(req.user.id);
+
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        const calls = await Call.findAll({
+            where: {
+                [Op.or]: [
+                    {listener_id: req.user.id},
+                    {talker_id: req.user.id}
+                ]
+            },
+        });
+
+        const ratings = await Rating.findAll({
+            where: { from_user_id: req.user.id }
+        });
+
+        const transactions = await Transaction.findAll({
+            where: { user_id: req.user.id }
+        });
+
+        const redistributions = await RedistributionDetail.findAll({
+            where: { user_id: req.user.id }
+        });
+
+        res.status(200).json({
+            user,
+            calls,
+            ratings,
+            transactions,
+            redistributions
+        });
+    } catch (error) {
+        logger.error(`Users getData error : ${error.message}`);
+        next(error);
+    }
+}
+
+const deleteUser = async (req, res, next) => {
+    try {
+        const user = await User.findByPk(req.user.id);
+
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        await User.update({
+            is_active: false,
+            firstname: "Deleted",
+            lastname: "DELETED",
+            phone: "0XXXXXXXXX",
+            email: `${req.user.id}@deleted.xyz`,
+            stripe_customer_id: "deleted"
+        }, {
+            where: { id: req.user.id }
+        });
+
+        await Rating.update({
+            comment: "This account has been deleted, comment removed"
+        }, {
+            where: { from_user_id: req.user.id }
+        });
+
+        await Emergency.update({
+            ip_address: `${req.user.id}`
+        }, {
+            where: { user_id: req.user.id }
+        });
+
+        await Transaction.update({
+            user_id: null
+        }, {
+            where: { user_id: req.user.id }
+        });
+
+        await RedistributionDetail.update({
+            user_id: null
+        }, {
+            where: { user_id: req.user.id }
+        });
+
+        res.status(200).json({ message: "User deleted successfully" });
+    } catch (error) {
+        logger.error(`Users deleteUser error : ${error.message}`);
+        next(error);
+    }
+}
+
 module.exports = {
     getReputation,
-    getXp
+    getXp,
+    getData,
+    deleteUser
 }
