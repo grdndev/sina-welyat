@@ -6,6 +6,7 @@ const TwilioService = require('../../services/TwilioService');
 const StripeService = require('../../services/StripeService');
 const logger = require('../../config/logger');
 const { Op } = require('sequelize');
+const { body } = require('express-validator');
 
 /**
  * @route   POST /api/v1/calls/initiate
@@ -235,92 +236,100 @@ const getCallDetails = async (req, res, next) => {
  * @desc    Manually end a call (client-side trigger)
  * @access  Private
  */
-const endCall = async (req, res, next) => {
-    try {
-        const { id: userId } = req.user;
-        const { id: callId } = req.params;
+const endCall = [
+    body('id').isString().withMessage('Call ID must be a string'),
+    async (req, res, next) => {
+        try {
+            const { id: userId } = req.user;
+            const { id: callId } = req.params;
 
-        const call = await Call.findByPk(callId);
-        if (!call) {
-            return res.status(404).json({ success: false, error: { message: 'Call not found' } });
+            const call = await Call.findByPk(callId);
+            if (!call) {
+                return res.status(404).json({ success: false, error: { message: 'Call not found' } });
+            }
+
+            if (call.talker_id !== userId && call.listener_id !== userId) {
+                return res.status(403).json({ success: false, error: { message: 'Unauthorized' } });
+            }
+
+            if (call.status === 'ended' || call.status === 'cancelled') {
+                return res.status(400).json({ success: false, error: { message: 'Call already ended' } });
+            }
+
+            const fsm = new CallStateMachine(call);
+            await fsm.end('Manually ended by user');
+
+            // Note: Dans un environnement réel, on couperait aussi l'appel Twilio ici
+            if (call.twilio_call_sid) {
+                await TwilioService.endCall(call.twilio_call_sid);
+            }
+
+            res.status(200).json({
+                success: true,
+                message: 'Call ended successfully'
+            });
+        } catch (error) {
+            next(error);
         }
-
-        if (call.talker_id !== userId && call.listener_id !== userId) {
-            return res.status(403).json({ success: false, error: { message: 'Unauthorized' } });
-        }
-
-        if (call.status === 'ended' || call.status === 'cancelled') {
-            return res.status(400).json({ success: false, error: { message: 'Call already ended' } });
-        }
-
-        const fsm = new CallStateMachine(call);
-        await fsm.end('Manually ended by user');
-
-        // Note: Dans un environnement réel, on couperait aussi l'appel Twilio ici
-        if (call.twilio_call_sid) {
-            await TwilioService.endCall(call.twilio_call_sid);
-        }
-
-        res.status(200).json({
-            success: true,
-            message: 'Call ended successfully'
-        });
-    } catch (error) {
-        next(error);
     }
-};
+]
 
 /**
  * @route   POST /api/v1/calls/:id/feedback
  * @desc    Record feedback after a call
  * @access  Private (Auth)
  */
-const rateCall = async (req, res, next) => {
-    try {
-        const { id } = req.user;
-        const { id: callId } = req.params;
-        const { rating, comment } = req.body;
-        const call = await Call.findByPk(callId);
+const rateCall = [
+    body('id').isString().withMessage('Call ID must be a string'),
+    body('rating').isInt({ min: 1, max: 5 }).withMessage('Rating must be an integer between 1 and 5'),
+    body('comment').optional().isString().withMessage('Comment must be a string'),
+    async (req, res, next) => {
+        try {
+            const { id } = req.user;
+            const { id: callId } = req.params;
+            const { rating, comment } = req.body;
+            const call = await Call.findByPk(callId);
 
-        if (!call || call.talker_id !== id || call.listener_id !== id) {
-            return res.status(404).json({ success: false, error: { message: 'Call not found' } });
-        }
-
-        if (call.duration_free_seconds + duration_paid_seconds < 120) {
-            return res.status(400).json({ success: false, error: { message: 'Call was too short to be rated' } });
-        }
-
-        const talkerId = call.talker_id;
-        const listenerId = call.listener_id;
-
-        const isRated = Rating.count({
-            where: {
-                call_id: callId,
-                from_user_id: id
+            if (!call || call.talker_id !== id || call.listener_id !== id) {
+                return res.status(404).json({ success: false, error: { message: 'Call not found' } });
             }
-        });
 
-        if (isRated) {
-            return res.status(400).json({ success: false, error: { message: 'Call was already rated' }});
+            if (call.duration_free_seconds + duration_paid_seconds < 120) {
+                return res.status(400).json({ success: false, error: { message: 'Call was too short to be rated' } });
+            }
+
+            const talkerId = call.talker_id;
+            const listenerId = call.listener_id;
+
+            const isRated = Rating.count({
+                where: {
+                    call_id: callId,
+                    from_user_id: id
+                }
+            });
+
+            if (isRated) {
+                return res.status(400).json({ success: false, error: { message: 'Call was already rated' }});
+            }
+
+            await Rating.create({
+                call_id: callId,
+                from_user_id: id,
+                to_user_id: talkerId === id ? listenerId : talkerId,
+                score: rating,
+                comment: comment
+            });
+
+            if (listenerId === id) {
+                ScoringService.checkTalker(talkerId);
+            }
+
+            res.status(200).json({ success: true, message: 'Feedback recorded' });
+        } catch (error) {
+            next(error);
         }
-
-        await Rating.create({
-            call_id: callId,
-            from_user_id: id,
-            to_user_id: talkerId === id ? listenerId : talkerId,
-            score: rating,
-            comment: comment
-        });
-
-        if (listenerId === id) {
-            ScoringService.checkTalker(talkerId);
-        }
-
-        res.status(200).json({ success: true, message: 'Feedback recorded' });
-    } catch (error) {
-        next(error);
     }
-};
+]
 
 module.exports = {
     initiateCall,

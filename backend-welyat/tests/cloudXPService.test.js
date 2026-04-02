@@ -12,12 +12,18 @@ describe("Create Redistribution", () => {
         users = {};
         calls = {};
         admin = await User.create({
+            firstname: 'admin',
+            lastname: 'welyat',
+            phone: '0000000000',
             email: 'admin@welyat.com',
             password_hash: 'hash',
             role: 'admin'
         });
 
         users.listener = await User.create({
+            firstname: 'listener',
+            lastname: 'welyat',
+            phone: '0000000000',
             email: 'listener@welyat.com',
             password_hash: 'hash',
             role: 'listener',
@@ -25,6 +31,9 @@ describe("Create Redistribution", () => {
         });
 
         users.both = await User.create({
+            firstname: 'both',
+            lastname: 'welyat',
+            phone: '0000000000',
             email: 'both@welyat.com',
             password_hash: 'hash',
             role: 'both',
@@ -32,6 +41,9 @@ describe("Create Redistribution", () => {
         });
 
         talker = await User.create({
+            firstname: 'talker',
+            lastname: 'welyat',
+            phone: '0000000000',
             email: 'talker@welyat.com',
             password_hash: 'hash',
             role: 'talker'

@@ -14,6 +14,9 @@ describe('Admin API', () => {
         await sequelize.sync({ force: true });
 
         admin = await User.create({
+            firstname: 'admin',
+            lastname: 'welyat',
+            phone: '0000000000',
             email: 'admin@welyat.com',
             password_hash: 'hash',
             role: 'admin'
@@ -21,6 +24,9 @@ describe('Admin API', () => {
         adminToken = jwt.sign({ id: admin.id, email: admin.email, role: admin.role }, process.env.JWT_SECRET || 'test_secret_key');
 
         user = await User.create({
+            firstname: 'user',
+            lastname: 'welyat',
+            phone: '0000000000',
             email: 'user@welyat.com',
             password_hash: 'hash',
             role: 'both',
