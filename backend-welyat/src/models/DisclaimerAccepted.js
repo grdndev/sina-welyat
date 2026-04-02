@@ -17,9 +17,9 @@ const DisclaimerAccepted = sequelize.define(
             type: DataTypes.UUID,
             allowNull: false,
         },
-        detail: {
-            type: DataTypes.STRING,
-            allowNull: true,
+        accepted_at: {
+            type: DataTypes.DATE,
+            defaultValue: Date.now()
         }
     },
     {

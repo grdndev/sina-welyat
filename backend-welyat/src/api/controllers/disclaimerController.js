@@ -19,7 +19,7 @@ const getDisclaimer = async (req, res, next) => {
         }
 
         res.status(200).json({
-            data: { disclaimer: disclaimer.file_url }
+            data: { disclaimer: disclaimer.content }
         });
     } catch (error) {
         logger.error(`get disclaimer error : ${error.message}`);
@@ -32,13 +32,29 @@ const getDisclaimer = async (req, res, next) => {
  */
 const acceptDisclaimer = async (req, res, next) => {
     try {
-        const disclaimer = await DisclaimerVersion.findOne({ order: [['created_at', 'DESC']] });
+        const { version } = req.body;
+        const disclaimer = await DisclaimerVersion.findOne({ where: { version }});
+        const latest = await DisclaimerVersion.findOne({ order: [['created_at', 'DESC']] });
         const user = await User.findByPk(req.user.id)
+
+        if (!user || !disclaimer) {
+            return res.status(400).json({
+                success: false,
+                error: { message: "Invalid request" }
+            });
+        }
+
+        if (disclaimer.id !== latest.id) {
+            return res.status(400).json({
+                success: false,
+                error: { message: "Disclaimer version is outdated" }
+            });
+        }
 
         await DisclaimerAccepted.findOrCreate({
             where: {
                 user_id: req.user.id,
-                disclaimer_version_id: disclaimer.id,
+                disclaimer_version_id: disclaimer.id
             }
         });
 
@@ -47,9 +63,9 @@ const acceptDisclaimer = async (req, res, next) => {
 
         const token = generateToken(user);
 
-        logger.info(`New user registered: ${user.email}`);
+        logger.info(`User ${user.email} accepted disclaimer version ${version}`);
 
-        res.status(201).json({
+        res.status(200).json({
             success: true,
             data: {
                 token,
@@ -62,17 +78,30 @@ const acceptDisclaimer = async (req, res, next) => {
 }
 
 /**
- * Reset disclaimer OR upload new ?
+ * Upload new disclaimer version and invalidate all previous acceptances
  */
 const updateDisclaimer = async (req, res, next) => {
     try {
+        const { version, content } = req.body;
+
+        if (!version || !content) {
+            return res.status(400).json({
+                success: false,
+                error: { message: "Version and content are required" }
+            });
+        }
+
+        await DisclaimerVersion.create({ version, content });
+
         await User.update({
             accepted_disclaimer: false
+        }, {
+            where: { accepted_disclaimer: true }
         });
 
         res.status(200).send();
     } catch (error) {
-        logger.error(`accept disclaimer error : ${error.message}`);
+        logger.error(`update disclaimer error : ${error.message}`);
         next(error);
     }
 }

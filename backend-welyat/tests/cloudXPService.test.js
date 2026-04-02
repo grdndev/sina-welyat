@@ -38,7 +38,7 @@ describe("Create Redistribution", () => {
         });
 
         const businessMode = await BusinessMode.create({
-            mode_name: 'OPEN',
+            mode_name: 'NORMAL',
             free_duration_minutes: 0,
             price_per_minute_client: 1,
             price_per_minute_listener: 1,

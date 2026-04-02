@@ -12,7 +12,7 @@ const payoutRoutes = require('./payouts');
 const usersRoutes = require('./users');
 const { User, Call } = require('../../models');
 const { Op } = require('sequelize');
-const { requireRole, authenticateToken } = require('../../middleware/auth');
+const { requireRole, authenticateToken, requireDisclaimer } = require('../../middleware/auth');
 
 const router = express.Router();
 
@@ -67,28 +67,19 @@ router.get('/api/v1/status', (req, res) => {
     });
 });
 
-// Authentication routes
+
 router.use('/api/v1/auth', authRoutes);
-
-// Authentication routes
-router.use('/api/v1/disclaimer', disclaimerRoutes);
-
-// Admin routes
-router.use('/api/v1/admin', authenticateToken, requireRole('admin'), adminRoutes);
-
-// Call routes
-router.use('/api/v1/calls', callRoutes);
-
-// Webhook routes
 router.use('/api/v1/webhooks', webhookRoutes);
 
-// Emergency routes
+router.use(authenticateToken);
+router.use('/api/v1/admin', requireRole('admin'), adminRoutes);
+router.use('/api/v1/disclaimer', disclaimerRoutes);
+
+router.use(requireDisclaimer);
+router.use('/api/v1/calls', callRoutes);
 router.use('/api/v1/emergency', emergencyRoutes);
-
-// Payout routes
 router.use('/api/v1/payouts', payoutRoutes);
-
-router.use('/api/v1/users', authenticateToken, usersRoutes);
+router.use('/api/v1/users', usersRoutes);
 
 /**
  * @route   GET /api/v1/dashboard/stats

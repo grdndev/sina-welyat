@@ -11,10 +11,11 @@ const DisclaimerVersion = sequelize.define(
         },
         version: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: false,
+            unique: true
         },
-        file_url: {
-            type: DataTypes.STRING,
+        content: {
+            type: DataTypes.TEXT,
             allowNull: false
         }
     },

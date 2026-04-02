@@ -8,6 +8,6 @@ const { authenticateToken } = require('../../middleware/auth');
  * @desc    Request external payout (WELYAT V0)
  * @access  Private
  */
-router.post('/request', authenticateToken, payoutController.requestExternalPayout);
+router.post('/request', payoutController.requestExternalPayout);
 
 module.exports = router;

@@ -76,7 +76,7 @@ describe('Admin API', () => {
             const res = await request(app).get('/api/v1/admin/cloud/status')
                 .set('Authorization', `Bearer ${userToken}`);
 
-            expect(res.statusCode).toBe(403);
+            expect(res.statusCode).toBe(401);
         });
     });
 
@@ -94,7 +94,7 @@ describe('Admin API', () => {
                 .send({percentage: 10})
                 .set('Authorization', `Bearer ${userToken}`);
 
-            expect(res.statusCode).toBe(403);
+            expect(res.statusCode).toBe(401);
         });
 
         it('should get an error with negative percentage', async () => {

@@ -13,7 +13,7 @@ describe('Phase 2 Tests: FSM & Matching', () => {
 
         // Setup basic data
         businessMode = await BusinessMode.create({
-            mode_name: 'normal',
+            mode_name: 'NORMAL',
             free_duration_minutes: 15,
             price_per_minute_client: 0.33,
             price_per_minute_listener: 0.22,

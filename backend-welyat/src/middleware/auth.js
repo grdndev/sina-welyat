@@ -32,18 +32,16 @@ const authenticateToken = (req, res, next) => {
 /**
  * Middleware to check if user has accepted disclaimers
  */
-const requireDisclaimer = () => {
-    return (req, res, next) => {
-        if (!req.user.disclaimer) {
-            return res.status(403).json({
-                success: false,
-                data: { redirect: `${process.env.FRONT_URL}/disclaimers` },
-                error: { message: 'Check disclaimer' },
-            });
-        }
+const requireDisclaimer = (req, res, next) => {
+    if (!req.user.disclaimer) {
+        return res.status(403).json({
+            success: false,
+            data: { redirect: `${process.env.FRONT_URL}/disclaimers` },
+            error: { message: 'Check disclaimer' },
+        });
+    }
 
-        next();
-    };
+    next();
 };
 
 /**
@@ -69,4 +67,4 @@ const requireRole = (...roles) => {
     };
 };
 
-module.exports = { authenticateToken, requireRole };
+module.exports = { authenticateToken, requireDisclaimer, requireRole };

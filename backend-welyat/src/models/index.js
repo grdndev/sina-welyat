@@ -68,6 +68,8 @@ module.exports = {
     Boost,
     BusinessMode,
     Call,
+    DisclaimerAccepted,
+    DisclaimerVersion,
     Emergency,
     Rating,
     Redistribution,

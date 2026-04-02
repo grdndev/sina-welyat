@@ -1,12 +1,11 @@
 const { sequelize } = require('../src/config/database');
-const { Call, BusinessMode, Redistribution, RedistributionDetail } = require('../src/models');
+const { Call, BusinessMode, Redistribution, RedistributionDetail, User } = require('../src/models');
 const app = require('../src/server');
 const jwt = require('jsonwebtoken');
 const request = require('supertest');
-const User = require('../src/models/User');
 const { firstOfMonth } = require('../src/utils');
 
-describe('/users API', () => {
+describe('Users API', () => {
     let admin, listenerToken, talkerToken, bothToken;
 
     beforeAll(async () => {
@@ -25,7 +24,7 @@ describe('/users API', () => {
             role: 'listener',
             total_xp: 20
         });
-        listenerToken = jwt.sign({ id: listener.id, email: listener.email, role: listener.role }, process.env.JWT_SECRET || 'test_secret_key');
+        listenerToken = jwt.sign({ id: listener.id, email: listener.email, role: listener.role, disclaimer: true }, process.env.JWT_SECRET || 'test_secret_key');
 
         talker = await User.create({
             email: 'talker@welyat.com',
@@ -33,7 +32,7 @@ describe('/users API', () => {
             role: 'talker',
             total_xp: 20
         });
-        talkerToken = jwt.sign({ id: talker.id, email: talker.email, role: talker.role }, process.env.JWT_SECRET || 'test_secret_key');
+        talkerToken = jwt.sign({ id: talker.id, email: talker.email, role: talker.role, disclaimer: true }, process.env.JWT_SECRET || 'test_secret_key');
 
         both = await User.create({
             email: 'both@welyat.com',
@@ -41,7 +40,7 @@ describe('/users API', () => {
             role: 'both',
             total_xp: 20
         });
-        bothToken = jwt.sign({ id: both.id, email: both.email, role: both.role }, process.env.JWT_SECRET || 'test_secret_key');
+        bothToken = jwt.sign({ id: both.id, email: both.email, role: both.role, disclaimer: true }, process.env.JWT_SECRET || 'test_secret_key');
 
         const businessMode = await BusinessMode.create({
             mode_name: 'NORMAL',
