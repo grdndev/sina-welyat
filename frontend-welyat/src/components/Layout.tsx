@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 import { Link } from 'react-router-dom';
 import logo from '../assets/logo.png';
-import { router } from '../router';
 
 interface LayoutProps extends PropsWithChildren {
   children?: React.ReactNode;
@@ -54,13 +53,9 @@ export default function Layout({
       {/* HEADER */}
       <header className="w-full flex flex-col md:flex-row items-center justify-between px-4 md:px-10 py-4 md:py-8 gap-4 md:gap-0">
         <div className="flex items-center gap-3 mx-auto md:mx-0">
-          <img src={logo} width={60} className="w-16 md:w-24" />
-          <div className="flex flex-col items-start tracking-wider">
-            <Link to={'/'}>
-              <h1 className="text-3xl md:text-5xl font-bold">WELYAT</h1>
-              <div className="text-xs md:text-base">We Listen to You Anytime</div>
-            </Link>
-          </div>
+          <Link to={'/'}>
+            <img src={logo} className="w-24 md:w-36" />
+          </Link>
         </div>
         <nav className="w-full md:w-auto flex justify-center md:justify-end">
           <ul className="flex flex-wrap gap-3 md:gap-6 text-xs md:text-base pt-2 md:pt-0">

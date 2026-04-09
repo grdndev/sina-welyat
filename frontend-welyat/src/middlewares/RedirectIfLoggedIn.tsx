@@ -13,6 +13,8 @@ export default function RedirectIfLoggedIn() {
             navigate("/admin");
         } else if (user.role === "listener") {
             navigate("/listener");
+        } else if (user.role === "talker" || user.role === "both") {
+            navigate("/talker");
         }
     })
 

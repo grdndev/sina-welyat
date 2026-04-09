@@ -3,6 +3,9 @@ import AuthProtection from "./middlewares/AuthProtection";
 import AuthProvider from "./middlewares/Auth";
 import DashboardAdmin from "./pages/admin/Dashboard";
 import DashboardListener from "./pages/listener/Dashboard";
+import DashboardTalker from "./pages/talker/Dashboard";
+import Call from "./pages/talker/Call";
+import Welcome from "./pages/Welcome";
 import Error from "./pages/Error";
 import Login from "./pages/auth/Login";
 import RedirectIfLoggedIn from "./middlewares/RedirectIfLoggedIn";
@@ -51,6 +54,10 @@ export const router = createBrowserRouter([{
             element: <AuthProtection/>,
             children: [
                 {
+                    path: "/welcome",
+                    element: <Welcome/>
+                },
+                {
                     path: "/admin",
                     element: <DashboardAdmin/>
                 },
@@ -58,7 +65,15 @@ export const router = createBrowserRouter([{
                     path: "/listener",
                     element: <DashboardListener/>
                 },
+                {
+                    path: "/talker",
+                    element: <DashboardTalker/>
+                },
             ]
+        },
+        {
+            path: "/call",
+            element: <Call/>
         },{
             path: "/",
             element: <RedirectIfLoggedIn/>,

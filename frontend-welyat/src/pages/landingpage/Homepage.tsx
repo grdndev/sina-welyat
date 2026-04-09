@@ -258,7 +258,7 @@ export default function HomePage() {
               {/* Final CTA */}
               <div className="flex flex-col items-center gap-4 pt-6">
                 <button
-                  onClick={() => router.navigate('/register')}
+                  onClick={() => router.navigate('/call')}
                   className="w-full max-w-md group bg-gradient-to-r from-[#7D2DEC] to-[#3F0DE0] py-4 rounded-full text-white font-bold shadow-xl hover:shadow-purple-500/20 transition-all"
                 >
                   <div className="flex items-center justify-center gap-3">

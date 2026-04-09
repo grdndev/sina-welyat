@@ -3,8 +3,20 @@ const logger = require('../config/logger');
 
 class TwilioService {
     constructor() {
-        this.client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+        this._client = null;
         this.twilioNumber = process.env.TWILIO_PHONE_NUMBER;
+    }
+
+    get client() {
+        if (!this._client) {
+            const sid = process.env.TWILIO_ACCOUNT_SID;
+            const token = process.env.TWILIO_AUTH_TOKEN;
+            if (!sid || !token) {
+                throw new Error('Twilio credentials missing (TWILIO_ACCOUNT_SID / TWILIO_AUTH_TOKEN)');
+            }
+            this._client = twilio(sid, token);
+        }
+        return this._client;
     }
 
     /**

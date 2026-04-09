@@ -17,9 +17,8 @@ export default function Layout({ children }: PropsWithChildren) {
     return <div className="min-h-screen w-full bg-gradient-to-br from-background-from to-background-to text-text-primary overflow-x-hidden">
         <header className="fixed md:relative w-full border-b border-primary/10 bg-background p-4">
             <div className="flex items-center justify-between gap-4">
-                <h1 className="flex items-center gap-3 text-xl md:text-3xl font-bold tracking-wider uppercase">
-                    <img src={logo} width={50}/>
-                    <span className="text-shadow-lg text-shadow-gray-400/40">Welyat</span>
+                <h1 className="flex items-center gap-3">
+                    <img src={logo} width={90}/>
                 </h1>
                 <nav className="hidden md:block">
                     <ul className="flex gap-5 text-xl text-text-secondary font-semibold">

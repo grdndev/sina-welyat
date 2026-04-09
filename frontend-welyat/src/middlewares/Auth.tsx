@@ -52,7 +52,7 @@ function provideAuth() {
     function login(user: User, tokens: any) {
         dataToLocalStorage("user", user, setUser);
         dataToLocalStorage("tokens", tokens, setTokens);
-        navigate("/");
+        navigate("/welcome");
     }
 
     function logout() {
