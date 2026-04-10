@@ -34,7 +34,7 @@ const register = [
                 });
             }
 
-            const { phone, password, email, role, firstname, lastname } = req.body;
+            const { phone, password, email, role, firstname, lastname, age, gender } = req.body;
 
             // Check if phone already registered
             const existingPhone = await User.findOne({ where: { phone } });
@@ -65,6 +65,8 @@ const register = [
                 role: role || 'talker',
                 firstname: firstname || null,
                 lastname: lastname || null,
+                birthdate: new Date(Date.now() - age * 365.25 * 24 * 60 * 60 * 1000), // approximate birthdate from age
+                gender: gender || null,
                 is_active: role === 'listener' ? false : true, // listeners need admin validation
             });
 

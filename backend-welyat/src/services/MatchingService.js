@@ -9,7 +9,7 @@ class MatchingService {
      * @param {string} talkerId - ID du talker
      * @returns {Promise<User|null>} - L'listener trouvé ou null
      */
-    async findMatch(talkerId, mode, retry = 0) {
+    async findMatch(talkerId, mode, filters, retry = 0) {
         try {
             const talker = await User.findByPk(talkerId);
             if (!talker) throw new Error('Talker not found');
@@ -24,6 +24,22 @@ class MatchingService {
                 id: { [Op.ne]: talkerId } // On ne peut pas s'écouter soi-même
             };
 
+            if (filters.age_min) {
+                const birthdateLimit = new Date();
+                birthdateLimit.setFullYear(birthdateLimit.getFullYear() - filters.age);
+                whereClause.birthdate = { [Op.lte]: birthdateLimit };
+            }
+
+            if (filters.age_max) {
+                const birthdateLimit = new Date();
+                birthdateLimit.setFullYear(birthdateLimit.getFullYear() - filters.age_max);
+                whereClause.birthdate = { ...whereClause.birthdate, [Op.gte]: birthdateLimit };
+            }
+
+            if (filters.gender) {
+                whereClause.gender = filters.gender;
+            }
+
             let filters = {
                 high: {},
                 low: {},
@@ -32,8 +48,10 @@ class MatchingService {
             let order = [['reputation_score', 'DESC']];
 
             if (talker.toxic_flag) {
-                filters.high.reputation_score = { [Op.lte]: 4.2 };
-                filters.low.reputation_score = { [Op.lte]: 4.2 };
+                if (retry == 0) return null;
+
+                filters.high.reputation_score = { [Op.lt]: 4.5 };
+                filters.low.reputation_score = { [Op.lt]: 4.5 };
             } else if (mode.mode_name === 'OPTIMIZATION') {
                 filters.high.reputation_score = { [Op.gte]: 4.5 };
                 filters.low.reputation_score = { [Op.lt]: 4.5 };

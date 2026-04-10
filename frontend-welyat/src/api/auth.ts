@@ -34,6 +34,7 @@ export const authApi = {
         lastname: string;
         phone: string;
         age: string;
+        gender: string;
         password: string;
         languages: string[];
         days: string[];
@@ -44,6 +45,7 @@ export const authApi = {
             lastname: formData.lastname,
             phone: formData.phone,
             age: formData.age,
+            gender: formData.gender,
             password: formData.password,
             languages: formData.languages,
             days: formData.days,

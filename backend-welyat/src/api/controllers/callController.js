@@ -16,6 +16,7 @@ const { body } = require('express-validator');
 const initiateCall = async (req, res, next) => {
     try {
         const { id: talkerId } = req.user;
+        const { gender, age_min, age_max } = req.body;
 
         // 1. Validation de base : l'utilisateur doit être un talker
         const user = await User.findByPk(talkerId);
@@ -87,7 +88,7 @@ const initiateCall = async (req, res, next) => {
         var retry = 0;
 
         while (20 / businessMode.timeout_matching > retry) {
-            listener = await MatchingService.findMatch(talkerId, businessMode.id, retry++);
+            listener = await MatchingService.findMatch(talkerId, businessMode.id, { gender, age_min, age_max }, retry++);
             if (listener) break;
 
             await new Promise(resolve => setTimeout(resolve, businessMode.timeout_matching * 1000));

@@ -40,6 +40,14 @@ const User = sequelize.define(
             allowNull: false,
             defaultValue: 'talker',
         },
+        gender: {
+            type: DataTypes.ENUM('male', 'female', 'other'),
+            allowNull: true,
+        },
+        birthdate: {
+            type: DataTypes.DATE,
+            allowNull: true,
+        },
         is_founding: {
             type: DataTypes.BOOLEAN,
             defaultValue: false,

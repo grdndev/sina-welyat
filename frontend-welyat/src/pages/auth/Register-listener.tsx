@@ -101,6 +101,7 @@ export default function RegisterListener() {
     if (!formData.phone?.trim()) throw new Error('Phone number is required');
     const age = parseInt(formData.age);
     if (!formData.age || isNaN(age) || age < 18) throw new Error('You must be at least 18 years old');
+    if (!formData.gender) throw new Error('Gender is required');
     if (!formData.languages?.length) throw new Error('Select at least one language');
     if (!formData.password) throw new Error('Password is required');
     if (formData.password.length < 8) throw new Error('Password must be at least 8 characters');
@@ -132,6 +133,7 @@ export default function RegisterListener() {
         lastname: formData.lastname,
         phone: formData.phone,
         age: formData.age,
+        gender: formData.gender,
         password: formData.password,
         languages: formData.languages || [],
         days: formData.days || [],
@@ -231,6 +233,16 @@ export default function RegisterListener() {
                     <label className="text-xs font-bold text-text-primary uppercase tracking-wider">Age <span style={{ color: '#8e5cff' }}>*</span></label>
                     <input type="number" min={18} max={99} placeholder="25" value={formData.age || ''} onChange={(e) => handleFormData('age', e.target.value)}
                       className="border border-gray-200 rounded-xl p-3 text-sm bg-gray-50 focus:outline-none focus:ring-2 transition" style={{ '--tw-ring-color': '#8e5cff' } as any} />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-bold text-text-primary uppercase tracking-wider">Gender <span style={{ color: '#8e5cff' }}>*</span></label>
+                    <select value={formData.gender || ''} onChange={(e) => handleFormData('gender', e.target.value)}
+                      className="border border-gray-200 rounded-xl p-3 text-sm bg-gray-50 focus:outline-none focus:ring-2 transition" style={{ '--tw-ring-color': '#8e5cff' } as any}>
+                      <option value="">Select gender</option>
+                      <option value="male">Male</option>
+                      <option value="female">Female</option>
+                      <option value="other">Other</option>
+                    </select>
                   </div>
                 </div>
 

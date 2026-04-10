@@ -38,6 +38,14 @@ module.exports = {
         allowNull: false,
         defaultValue: 'talker',
       },
+      gender: {
+        type: Sequelize.ENUM('male', 'female', 'other'),
+        allowNull: true,
+      },
+      birthdate: {
+          type: Sequelize.DATE,
+          allowNull: true,
+      },
       is_founding: {
         type: Sequelize.BOOLEAN,
         defaultValue: false,
