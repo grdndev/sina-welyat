@@ -1,5 +1,5 @@
 const { Op } = require('sequelize');
-const { User, Call, Transaction } = require('../models');
+const { User, Call, Transaction, UserSubscription } = require('../models');
 const logger = require('../config/logger');
 const { all } = require('../server');
 
@@ -14,6 +14,11 @@ class MatchingService {
             const talker = await User.findByPk(talkerId);
             if (!talker) throw new Error('Talker not found');
 
+            const subscription = await UserSubscription.findOne({
+                where: { user_id: talkerId, is_active: true },
+                include: 'Subscription',
+            });
+
             logger.info(`Matching starting for talker ${talkerId} in mode ${mode.mode_name}`);
 
             // Construction de la requête de base
@@ -24,20 +29,23 @@ class MatchingService {
                 id: { [Op.ne]: talkerId } // On ne peut pas s'écouter soi-même
             };
 
-            if (filters.age_min) {
-                const birthdateLimit = new Date();
-                birthdateLimit.setFullYear(birthdateLimit.getFullYear() - filters.age);
-                whereClause.birthdate = { [Op.lte]: birthdateLimit };
-            }
+            if (subscription && subscription.Subscription) {
+                if (subscription.Subscription.gender_filter && filters.gender) {
+                    whereClause.gender = filters.gender;
+                }
 
-            if (filters.age_max) {
-                const birthdateLimit = new Date();
-                birthdateLimit.setFullYear(birthdateLimit.getFullYear() - filters.age_max);
-                whereClause.birthdate = { ...whereClause.birthdate, [Op.gte]: birthdateLimit };
-            }
-
-            if (filters.gender) {
-                whereClause.gender = filters.gender;
+                if (subscription.Subscription.age_filter) {
+                    if (filters.age_min) {
+                        const birthdateLimit = new Date();
+                        birthdateLimit.setFullYear(birthdateLimit.getFullYear() - filters.age);
+                        whereClause.birthdate = { [Op.lte]: birthdateLimit };
+                    }
+                    if (filters.age_max) {
+                        const birthdateLimit = new Date();
+                        birthdateLimit.setFullYear(birthdateLimit.getFullYear() - filters.age_max);
+                        whereClause.birthdate = { ...whereClause.birthdate, [Op.gte]: birthdateLimit };
+                    }
+                }
             }
 
             let filters = {

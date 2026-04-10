@@ -9,6 +9,8 @@ const Rating = require('./Rating');
 const Redistribution = require('./Redistribution');
 const RedistributionDetail = require('./RedistributionDetail');
 const Reputation = require('./Reputation');
+const Subscription = require('./Subscription');
+const UserSubscription = require('./UserSubscription');
 const Transaction = require('./Transaction');
 const User = require('./User');
 
@@ -64,6 +66,12 @@ RedistributionDetail.belongsTo(Redistribution, { foreignKey: 'redistribution_id'
 User.hasMany(RedistributionDetail, { foreignKey: 'user_id' });
 RedistributionDetail.belongsTo(User, { foreignKey: 'user_id' });
 
+// Subscription
+Subscription.hasMany(UserSubscription, { foreignKey: 'subscription_id' });
+UserSubscription.belongsTo(Subscription, { foreignKey: 'subscription_id' });
+User.hasMany(UserSubscription, { foreignKey: 'user_id' });
+UserSubscription.belongsTo(User, { foreignKey: 'user_id' });
+
 module.exports = {
     Boost,
     BusinessMode,
@@ -75,6 +83,8 @@ module.exports = {
     Redistribution,
     RedistributionDetail,
     Reputation,
+    Subscription,
+    UserSubscription,
     Transaction,
     User,
 };
