@@ -79,16 +79,18 @@ class MatchingService {
 
             const busyListenerIds = activeCalls.map(c => c.listener_id);
 
-            const paymentHistory = await Transaction.count({
+            // Check if user paid more than 5$ total
+            const totalPaid = await Transaction.sum('amount', {
                 where: {
                     talker_id: talkerId,
+                    type: 'charge',
                     status: 'completed',
                 },
             });
 
             // Prioriser les listeners
             let priorityListeners = [];
-            if (paymentHistory > 0) {
+            if (totalPaid > 5) {
                 priorityListeners = [...highPriorityListeners, ...lowPriorityListeners];
             } else {
                 priorityListeners = [...lowPriorityListeners, ...highPriorityListeners];
