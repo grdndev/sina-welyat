@@ -9,7 +9,7 @@ module.exports = {
         autoIncrement: true,
       },
       mode_name: {
-        type: Sequelize.ENUM('NORMAL', 'SMART', 'SHIELD', 'CRITICAL'),
+        type: Sequelize.ENUM('BALANCED', 'OPTIMIZATION', 'PROTECTION'),
         allowNull: false,
         unique: true,
       },
@@ -23,7 +23,7 @@ module.exports = {
         allowNull: false,
         comment: 'Price charged to client per minute (USD)',
       },
-      price_per_minute_listener: {
+      earn_per_minute_listener: {
         type: Sequelize.DECIMAL(5, 2),
         allowNull: false,
         comment: 'Payout to listener per minute (USD)',
@@ -31,7 +31,12 @@ module.exports = {
       xp_per_minutes: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        comment: 'XP awarded per X minutes of free listening',
+        comment: '1 XP awarded per X minutes of free listening',
+      },
+      timeout_matching: {
+          type: Sequelize.INTEGER,
+          allowNull: false,
+          defaultValue: 5,
       },
       is_active: {
         type: Sequelize.BOOLEAN,
@@ -46,16 +51,41 @@ module.exports = {
         type: Sequelize.DATE,
         allowNull: false,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
-      },
-      timeout_matching: {
-          type: Sequelize.INTEGER,
-          allowNull: false,
-          defaultValue: 5,
       }
     });
 
     // Add index
     await queryInterface.addIndex('business_modes', ['is_active']);
+
+    await queryInterface.bulkInsert('business_modes', [
+      {
+        mode_name: 'BALANCED',
+        free_duration_minutes: 15,
+        price_per_minute_client: 0.33,
+        earn_per_minute_listener: 0.22,
+        xp_per_minutes: 5,
+        timeout_matching: 5,
+        is_active: true,
+      },
+      {
+        mode_name: 'OPTIMIZATION',
+        free_duration_minutes: 15,
+        price_per_minute_client: 0.35,
+        earn_per_minute_listener: 0.21,
+        xp_per_minutes: 5,
+        timeout_matching: 8,
+        is_active: true,
+      },
+      {
+        mode_name: 'PROTECTION',
+        free_duration_minutes: 13,
+        price_per_minute_client: 0.36,
+        earn_per_minute_listener: 0.20,
+        xp_per_minutes: 5,
+        timeout_matching: 12,
+        is_active: true,
+      },
+    ]);
   },
 
   async down(queryInterface, Sequelize) {

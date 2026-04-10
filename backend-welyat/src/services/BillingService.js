@@ -78,7 +78,7 @@ class BillingService {
 
             // 2. Calcul du Payout précis (à la seconde)
             // Logic: payout = paid_seconds * (listener_rate_per_min / 60)
-            const listenerRatePerMin = parseFloat(call.business_mode.price_per_minute_listener);
+            const listenerRatePerMin = parseFloat(call.business_mode.earn_per_minute_listener);
             let payoutForThisTick = listenerRatePerMin;
 
             // 2.1 Founding Listener Boost Logic (+10% max)

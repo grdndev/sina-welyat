@@ -1,6 +1,7 @@
 const { Op } = require('sequelize');
-const { User, Call } = require('../models');
+const { User, Call, Transaction } = require('../models');
 const logger = require('../config/logger');
+const { all } = require('../server');
 
 class MatchingService {
     /**
@@ -8,10 +9,10 @@ class MatchingService {
      * @param {string} talkerId - ID du talker
      * @returns {Promise<User|null>} - L'listener trouvé ou null
      */
-    async findMatch(talkerId, mode) {
+    async findMatch(talkerId, mode, retry = 0) {
         try {
             const talker = await User.findByPk(talkerId);
-            if (!talker) throw new Error('Parlant not found');
+            if (!talker) throw new Error('Talker not found');
 
             logger.info(`Matching starting for talker ${talkerId} in mode ${mode.mode_name}`);
 
@@ -23,27 +24,23 @@ class MatchingService {
                 id: { [Op.ne]: talkerId } // On ne peut pas s'écouter soi-même
             };
 
-            // Logique spécifique aux modes
+            let filters = {
+                high: {},
+                low: {},
+            };
+
             let order = [['reputation_score', 'DESC']];
 
-            if (mode.mode_name === 'SMART' || mode.mode_name === 'CRITICAL') {
-                // Priorité haute réputation
-                whereClause.reputation_score = { [Op.gte]: 4.0 };
-            }
-
-            if (mode.mode_name === 'SHIELD' || mode.mode_name === 'CRITICAL') {
-                // On pourrait ajouter des filtres sur la solvabilité ici plus tard
-            }
-
-            // Gestion des talkers toxiques
             if (talker.toxic_flag) {
-                whereClause.reputation_score = { [Op.lte]: 4.2 }; // On leur donne des listeners "solides" mais moins "premium"
+                filters.high.reputation_score = { [Op.lte]: 4.2 };
+                filters.low.reputation_score = { [Op.lte]: 4.2 };
+            } else if (mode.mode_name === 'OPTIMIZATION') {
+                filters.high.reputation_score = { [Op.gte]: 4.5 };
+                filters.low.reputation_score = { [Op.lt]: 4.5 };
             }
 
-            const potentialListeners = await User.findAll({
-                where: whereClause,
-                order: order,
-            });
+            const highPriorityListeners = await User.findAll({ where: {...whereClause, ...filters.high}, order });
+            const lowPriorityListeners = await User.findAll({ where: {...whereClause, ...filters.low}, order });
 
             // Filtrer les occupés
             const activeCalls = await Call.findAll({
@@ -55,15 +52,25 @@ class MatchingService {
             });
 
             const busyListenerIds = activeCalls.map(c => c.listener_id);
-            const availableListener = potentialListeners.find(user => !busyListenerIds.includes(user.id));
+
+            const paymentHistory = await Transaction.count({
+                where: {
+                    talker_id: talkerId,
+                    status: 'completed',
+                },
+            });
+
+            // Prioriser les listeners
+            let priorityListeners = [];
+            if (paymentHistory > 0) {
+                priorityListeners = [...highPriorityListeners, ...lowPriorityListeners];
+            } else {
+                priorityListeners = [...lowPriorityListeners, ...highPriorityListeners];
+            }
+
+            const availableListener = priorityListeners.find(user => !busyListenerIds.includes(user.id));
 
             if (availableListener) {
-                // Simulation du timeout de matching du mode
-                if (mode.timeout_matching > 0) {
-                    logger.info(`Simulating matching timeout of ${mode.timeout_matching}s for mode ${mode.mode_name}`);
-                    // await new Promise(resolve => setTimeout(resolve, mode.timeout_matching * 1000));
-                }
-
                 logger.info(`Match found: ${availableListener.id} for talker ${talkerId}`);
                 return availableListener;
             }

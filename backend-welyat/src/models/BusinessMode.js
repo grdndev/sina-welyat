@@ -10,7 +10,7 @@ const BusinessMode = sequelize.define(
             primaryKey: true,
         },
         mode_name: {
-            type: DataTypes.ENUM('NORMAL', 'SMART', 'SHIELD', 'CRITICAL'),
+            type: DataTypes.ENUM('BALANCED', 'OPTIMIZATION', 'PROTECTION'),
             allowNull: false,
         },
         free_duration_minutes: {
@@ -21,7 +21,7 @@ const BusinessMode = sequelize.define(
             type: DataTypes.DECIMAL(10, 2),
             allowNull: false,
         },
-        price_per_minute_listener: {
+        earn_per_minute_listener: {
             type: DataTypes.DECIMAL(10, 2),
             allowNull: false,
         },

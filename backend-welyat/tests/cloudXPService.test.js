@@ -50,10 +50,10 @@ describe("Create Redistribution", () => {
         });
 
         const businessMode = await BusinessMode.create({
-            mode_name: 'NORMAL',
+            mode_name: 'BALANCED',
             free_duration_minutes: 0,
             price_per_minute_client: 1,
-            price_per_minute_listener: 1,
+            earn_per_minute_listener: 1,
             xp_per_minutes: 1
         })
 

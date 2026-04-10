@@ -13,10 +13,10 @@ describe('WELYAT Call Dashboard API', () => {
 
         // Setup data
         businessMode = await BusinessMode.create({
-            mode_name: 'NORMAL',
+            mode_name: 'BALANCED',
             free_duration_minutes: 15,
             price_per_minute_client: 0.33,
-            price_per_minute_listener: 0.22,
+            earn_per_minute_listener: 0.22,
             xp_per_minutes: 5,
             timeout_matching: 5
         });

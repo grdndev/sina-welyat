@@ -42,7 +42,7 @@ const initiateCall = async (req, res, next) => {
         }
 
         // 3. Récupérer le business mode par défaut du système
-        const defaultModeName = process.env.DEFAULT_BUSINESS_MODE || 'NORMAL';
+        const defaultModeName = process.env.DEFAULT_BUSINESS_MODE || 'BALANCED';
         const businessMode = await BusinessMode.findOne({
             where: { mode_name: defaultModeName, is_active: true }
         });
@@ -82,15 +82,32 @@ const initiateCall = async (req, res, next) => {
             }
         }
 
-        // 5. Trouver un listener via MatchingService (Seulement après pre-auth OK)
-        const listener = await MatchingService.findMatch(talkerId, businessMode);
+        // 5. Trouver un listener via MatchingService
+        var listener;
+        var retry = 0;
+
+        while (20 / businessMode.timeout_matching > retry) {
+            listener = await MatchingService.findMatch(talkerId, businessMode.id, retry++);
+            if (listener) break;
+
+            await new Promise(resolve => setTimeout(resolve, businessMode.timeout_matching * 1000));
+        }
+
+        if (!listener) {
+            return res.status(404).json({
+                success: false,
+                error: { message: 'No available listeners found. Please try again later.' },
+            });
+        }
 
         // 7. Initier l'appel Twilio
-        const callbackBaseUrl = process.env.BASE_URL || `http://${process.env.HOST || 'localhost'}:${process.env.PORT || 3000}`;
-        const statusCallbackUrl = `${callbackBaseUrl}/api/v1/webhooks/twilio/status`;
 
+        const twilioCall = { sid: `FAKE_SID_${Date.now()}` }; // Placeholder pour développement
         // Dans une implémentation réelle, on appellerait Twilio ici
+        // const callbackBaseUrl = process.env.BASE_URL || `http://${process.env.HOST || 'localhost'}:${process.env.PORT || 3000}`;
+        // const statusCallbackUrl = `${callbackBaseUrl}/api/v1/webhooks/twilio/status`;
         // const twilioCall = await TwilioService.initiateCall(listener.phone_number, user.phone_number, statusCallbackUrl);
+
         const call = await Call.create({
             talker_id: talkerId,
             listener_id: listener.id,

@@ -69,6 +69,7 @@ const promoteUser = [
             }
 
             user.is_founding = true;
+            user.founding_start_date = new Date();
             user.founding_end_date = new Date(Date.now() + 1000 * 60 * 60 * 24 * 365);
             await user.save();
 

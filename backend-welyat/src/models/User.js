@@ -44,6 +44,10 @@ const User = sequelize.define(
             type: DataTypes.BOOLEAN,
             defaultValue: false,
         },
+        founding_start_date: {
+            type: DataTypes.DATE,
+            allowNull: true,
+        },
         founding_end_date: {
             type: DataTypes.DATE,
             allowNull: true,

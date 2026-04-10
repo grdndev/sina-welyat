@@ -66,7 +66,7 @@ const handleTwilioStatus = async (req, res, next) => {
                         const businessMode = await BusinessMode.findByPk(call.business_mode_id);
 
                         if (listener && businessMode) {
-                            const ratePerMin = parseFloat(businessMode.price_per_minute_listener);
+                            const ratePerMin = parseFloat(businessMode.earn_per_minute_listener);
                             const precisePayout = (call.duration_paid_seconds * (ratePerMin / 60)).toFixed(4);
 
                             listener.balance = parseFloat(listener.balance) + parseFloat(precisePayout);

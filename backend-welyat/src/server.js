@@ -9,6 +9,7 @@ const morganMiddleware = require('./middleware/morgan');
 const path = require('path');
 const rateLimit = require('express-rate-limit');
 const routes = require('./api/routes');
+const twilio = require('./services/TwilioService');
 require('./cron');
 require('dotenv').config();
 

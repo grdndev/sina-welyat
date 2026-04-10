@@ -10,19 +10,20 @@ module.exports = {
       },
       firstname: {
         type: Sequelize.STRING,
-        allowNull: false,
+        allowNull: true,
       },
       lastname: {
         type: Sequelize.STRING,
-        allowNull: false,
+        allowNull: true,
       },
       phone: {
         type: Sequelize.STRING,
         allowNull: false,
+        unique: true,
       },
       email: {
         type: Sequelize.STRING,
-        allowNull: false,
+        allowNull: true,
         unique: true,
         validate: {
           isEmail: true,
@@ -111,6 +112,7 @@ module.exports = {
 
     // Add indexes
     await queryInterface.addIndex('users', ['email']);
+    await queryInterface.addIndex('users', ['phone']);
     await queryInterface.addIndex('users', ['role']);
     await queryInterface.addIndex('users', ['is_founding']);
     await queryInterface.addIndex('users', ['reputation_score']);

@@ -34,7 +34,7 @@ const register = [
                 });
             }
 
-            const { phone, password, email, role, firstname, lastname, age, languages, days, slots } = req.body;
+            const { phone, password, email, role, firstname, lastname } = req.body;
 
             // Check if phone already registered
             const existingPhone = await User.findOne({ where: { phone } });
