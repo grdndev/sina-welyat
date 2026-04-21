@@ -3,6 +3,23 @@ const adminController = require('../controllers/adminController');
 
 const router = express.Router();
 
+// KPI metrics
+router.get('/metrics', adminController.getMetrics);
+
+/**
+ * @route   GET /api/v1/admin/business-modes
+ * @desc    List all business modes with their config
+ * @access  Private (admin)
+ */
+router.get('/business-modes', adminController.getBusinessModes);
+
+/**
+ * @route   POST /api/v1/admin/business-modes/:id/activate
+ * @desc    Switch active business mode (Normal / Corrigé / Tendu)
+ * @access  Private (admin)
+ */
+router.post('/business-modes/:id/activate', adminController.activateBusinessMode);
+
 /**
  * @route   GET /api/v1/admin/cloud/status
  * @desc    Get Cloud XP status

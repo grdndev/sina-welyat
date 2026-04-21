@@ -9,6 +9,8 @@ const disclaimerRoutes = require('./disclaimer');
 const emergencyRoutes = require('./emergency');
 const express = require('express');
 const payoutRoutes = require('./payouts');
+const subscriptionRoutes = require('./subscriptions');
+const listenerRoutes = require('./listeners');
 const usersRoutes = require('./users');
 const webhookRoutes = require('./webhooks');
 
@@ -50,6 +52,8 @@ router.use(requireDisclaimer);
 router.use('/api/v1/calls', highLimit, callRoutes);
 router.use('/api/v1/emergency', emergencyRoutes);
 router.use('/api/v1/payouts', payoutRoutes);
+router.use('/api/v1/subscriptions', subscriptionRoutes);
+router.use('/api/v1/listeners', listenerRoutes);
 router.use('/api/v1/users', usersRoutes);
 
 module.exports = router;

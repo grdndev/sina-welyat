@@ -1,5 +1,6 @@
 'use strict';
 
+const { v4: uuidv4 } = require('uuid');
 const { stripe } = require("../src/services/StripeService");
 
 module.exports = {
@@ -114,6 +115,7 @@ module.exports = {
     const now = new Date();
     await queryInterface.bulkInsert('subscriptions', [
       {
+        id: uuidv4(), 
         name: 'Essential',
         free_minutes_per_month: 300,
         gender_filter: true,
@@ -125,6 +127,7 @@ module.exports = {
         updated_at: now,
       },
       {
+        id: uuidv4(),
         name: 'Comfort',
         free_minutes_per_month: 720,
         gender_filter: true,
@@ -136,6 +139,7 @@ module.exports = {
         updated_at: now,
       },
       {
+        id: uuidv4(),
         name: 'Elite',
         free_minutes_per_month: 2400,
         gender_filter: true,

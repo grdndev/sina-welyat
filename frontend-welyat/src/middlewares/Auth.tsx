@@ -3,9 +3,10 @@ import { Outlet, useNavigate } from "react-router-dom";
 const APP_ID = import.meta.env.VITE_APP_ID || "sina-welyat";
 
 type Context = {
-    user?: User;
-    login?: any;
-    logout?: any;
+    user?: User | null;
+    login?: (user: User, tokens: any) => void;
+    logout?: () => void;
+    setSession?: (user: User, tokens: any) => void;
 }
 
 type User = {
@@ -55,15 +56,22 @@ function provideAuth() {
         navigate("/welcome");
     }
 
+    // Like login but without navigating — used when auth happens mid-flow (e.g. call flow)
+    function setSession(user: User, tokens: any) {
+        dataToLocalStorage("user", user, setUser);
+        dataToLocalStorage("tokens", tokens, setTokens);
+    }
+
     function logout() {
-        dataToLocalStorage("user", null, setUser)
-        dataToLocalStorage("tokens", null, setTokens)
+        dataToLocalStorage("user", null, setUser);
+        dataToLocalStorage("tokens", null, setTokens);
         navigate("/login");
     }
 
     return {
         login,
         logout,
+        setSession,
         user,
         tokens
     };

@@ -16,6 +16,10 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: true,
       },
+      display_name: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
       phone: {
         type: Sequelize.STRING,
         allowNull: false,
@@ -50,6 +54,10 @@ module.exports = {
         type: Sequelize.BOOLEAN,
         defaultValue: false,
       },
+      founding_start_date: {
+        type: Sequelize.DATE,
+        allowNull: true,
+      },
       founding_end_date: {
         type: Sequelize.DATE,
         allowNull: true,
@@ -81,6 +89,14 @@ module.exports = {
       balance: {
         type: Sequelize.DECIMAL(10, 2),
         defaultValue: 0.00,
+      },
+      stripe_payouts_enabled: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      stripe_account_id: {
+        type: Sequelize.STRING,
+        allowNull: true,
       },
       stripe_customer_id: {
         type: Sequelize.STRING,

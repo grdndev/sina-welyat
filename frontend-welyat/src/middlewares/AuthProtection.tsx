@@ -11,13 +11,14 @@ export default function AuthProtection() {
     useEffect(() => {
         if (!user) {
             navigate("/login");
+            return;
         }
 
         setLoading(false);
-    }, []);
+    }, [user, navigate]);
 
     if (loading) {
-        return <Loading />
+        return <Loading />;
     }
 
     return <Outlet />;

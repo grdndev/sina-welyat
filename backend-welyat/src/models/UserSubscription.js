@@ -42,7 +42,7 @@ const UserSubscription = sequelize.define(
       subscribed_at: {
         type: DataTypes.DATE,
         allowNull: false,
-        defaultValue: DataTypes.literal('CURRENT_TIMESTAMP'),
+        defaultValue: DataTypes.NOW,
       },
     },
     {

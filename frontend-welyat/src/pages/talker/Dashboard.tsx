@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "./Layout";
-import { Phone, MessageCircleHeart, Clock, Star, ChevronRight, PhoneCall } from "lucide-react";
+import { Phone, MessageCircleHeart, Clock, Star, ChevronRight, PhoneCall, Gift, DollarSign, TrendingUp, Zap } from "lucide-react";
 import { PolarAngleAxis, RadialBar, RadialBarChart, AreaChart, Area, CartesianGrid } from "recharts";
 import Loading from "../Loading";
 import { maxDecimals } from "../../utils";
+import { subscriptionsApi, type UserSubscription } from "../../api/subscriptions";
 
 type TalkerData = {
     reputation: number;
@@ -12,6 +13,10 @@ type TalkerData = {
     session_duration: number;
     last_calls: LastCall[];
     weekly_activity: { value: number }[];
+    free_minutes_remaining: number;
+    price_per_minute: number;
+    spend_today: number;
+    spend_month: number;
 };
 
 type LastCall = {
@@ -33,7 +38,14 @@ function formatDate(dateStr: string) {
 
 export default function Dashboard() {
     const [data, setData] = useState<TalkerData | null>(null);
+    const [subscription, setSubscription] = useState<UserSubscription | null>(null);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        subscriptionsApi.getCurrent()
+            .then((res) => setSubscription(res.data.subscription))
+            .catch(() => setSubscription(null));
+    }, []);
 
     if (!data) {
         setData({
@@ -46,6 +58,10 @@ export default function Dashboard() {
                 { duration_total: Math.floor(Math.random() * 45) + 5, date: new Date(Date.now() - 3 * 86400000).toISOString() },
             ],
             weekly_activity: Array.from({ length: 7 }, () => ({ value: Math.floor(Math.random() * 60) })),
+        free_minutes_remaining: 15,
+        price_per_minute: 0.33,
+        spend_today: parseFloat((Math.random() * 5).toFixed(2)),
+        spend_month: parseFloat((Math.random() * 40).toFixed(2)),
         });
         return <Loading />;
     }
@@ -150,6 +166,59 @@ export default function Dashboard() {
                                 </div>
                             </div>
                         </div>
+
+                        {/* Billing info */}
+                        <div className="grid grid-cols-3 gap-3">
+                            <div className="rounded-2xl border border-primary/10 bg-gradient-to-br from-background-from to-background-to p-4 flex flex-col gap-1">
+                                <div className="flex items-center gap-2 text-xs text-text-secondary uppercase tracking-wider font-semibold">
+                                    <Gift size={13} className="text-primary" /> Free left
+                                </div>
+                                <div className="text-2xl font-extrabold text-text-primary">
+                                    {subscription?.Subscription?.free_minutes_per_month ?? data.free_minutes_remaining}
+                                    <span className="text-sm font-normal text-text-secondary ml-1">min</span>
+                                </div>
+                                <div className="text-[11px] text-text-secondary">
+                                    {subscription?.Subscription?.name
+                                        ? `${subscription.Subscription.name} plan · resets monthly`
+                                        : 'Resets monthly'}
+                                </div>
+                            </div>
+                            <div className="rounded-2xl border border-primary/10 bg-gradient-to-br from-background-from to-background-to p-4 flex flex-col gap-1">
+                                <div className="flex items-center gap-2 text-xs text-text-secondary uppercase tracking-wider font-semibold">
+                                    <DollarSign size={13} className="text-primary" /> Rate
+                                </div>
+                                <div className="text-2xl font-extrabold text-text-primary">${data.price_per_minute}<span className="text-sm font-normal text-text-secondary ml-1">/min</span></div>
+                                <div className="text-[11px] text-text-secondary">After free time</div>
+                            </div>
+                            <div className="rounded-2xl border border-primary/10 bg-gradient-to-br from-background-from to-background-to p-4 flex flex-col gap-1">
+                                <div className="flex items-center gap-2 text-xs text-text-secondary uppercase tracking-wider font-semibold">
+                                    <TrendingUp size={13} className="text-primary" /> Spent
+                                </div>
+                                <div className="text-2xl font-extrabold text-text-primary">${data.spend_today}</div>
+                                <div className="text-[11px] text-text-secondary">${data.spend_month} this month</div>
+                            </div>
+                        </div>
+
+                        {/* Subscription upsell / plan link */}
+                        <button
+                            onClick={() => navigate('/subscriptions')}
+                            className="w-full flex items-center justify-between rounded-2xl border border-primary/10 bg-gradient-to-br from-background-from to-background-to p-4 hover:border-primary/30 transition"
+                        >
+                            <div className="flex items-center gap-3">
+                                <Zap size={16} className="text-primary" />
+                                <div className="text-left">
+                                    <div className="text-sm font-bold text-text-primary">
+                                        {subscription?.Subscription ? subscription.Subscription.name + ' plan' : 'No active plan'}
+                                    </div>
+                                    <div className="text-[11px] text-text-secondary">
+                                        {subscription?.Subscription
+                                            ? 'Manage or upgrade your subscription'
+                                            : 'Subscribe to get more free minutes & filters'}
+                                    </div>
+                                </div>
+                            </div>
+                            <ChevronRight size={16} className="text-text-secondary shrink-0" />
+                        </button>
 
                         {/* Weekly activity */}
                         <div className="rounded-2xl border border-primary/10 bg-gradient-to-br from-background-from to-background-to p-4">

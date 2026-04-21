@@ -22,6 +22,7 @@ module.exports = {
         {
           id: uuidv4(),
           email: 'talker1@sina.com',
+          phone: '+33600000001',
           password_hash: password,
           role: 'talker',
           is_founding: false,
@@ -37,6 +38,7 @@ module.exports = {
         {
           id: uuidv4(),
           email: 'talker2@sina.com',
+          phone: '+33600000002',
           password_hash: password,
           role: 'talker',
           is_founding: false,
@@ -52,6 +54,7 @@ module.exports = {
         {
           id: uuidv4(),
           email: 'talker3@sina.com',
+          phone: '+33600000003',
           password_hash: password,
           role: 'talker',
           is_founding: false,
@@ -67,6 +70,7 @@ module.exports = {
         {
           id: uuidv4(),
           email: 'talker4@sina.com',
+          phone: '+33600000004',
           password_hash: password,
           role: 'talker',
           is_founding: false,
@@ -82,6 +86,7 @@ module.exports = {
         {
           id: uuidv4(),
           email: 'talker5@sina.com',
+          phone: '+33600000005',
           password_hash: password,
           role: 'talker',
           is_founding: false,
@@ -100,9 +105,11 @@ module.exports = {
         {
           id: uuidv4(),
           email: 'listener1@sina.com',
+          phone: '+33600000011',
           password_hash: password,
           role: 'listener',
           is_founding: false,
+          accepted_disclaimer: true,
           reputation_score: 4.9,
           toxic_flag: false,
           low_reputation_flag: false,
@@ -115,9 +122,11 @@ module.exports = {
         {
           id: uuidv4(),
           email: 'listener2@sina.com',
+          phone: '+33600000012',
           password_hash: password,
           role: 'listener',
           is_founding: false,
+          accepted_disclaimer: true,
           reputation_score: 4.7,
           toxic_flag: false,
           low_reputation_flag: false,
@@ -130,9 +139,11 @@ module.exports = {
         {
           id: uuidv4(),
           email: 'listener3@sina.com',
+          phone: '+33600000013',
           password_hash: password,
           role: 'listener',
           is_founding: false,
+          accepted_disclaimer: true,
           reputation_score: 4.3,
           toxic_flag: false,
           low_reputation_flag: false,
@@ -145,9 +156,11 @@ module.exports = {
         {
           id: uuidv4(),
           email: 'listener4@sina.com',
+          phone: '+33600000014',
           password_hash: password,
           role: 'listener',
           is_founding: false,
+          accepted_disclaimer: true,
           reputation_score: 2.3,
           toxic_flag: false,
           low_reputation_flag: true,
@@ -161,9 +174,11 @@ module.exports = {
         {
           id: uuidv4(),
           email: 'listener5@sina.com',
+          phone: '+33600000015',
           password_hash: password,
           role: 'listener',
           is_founding: false,
+          accepted_disclaimer: true,
           reputation_score: 3.8,
           toxic_flag: false,
           low_reputation_flag: false,
@@ -178,9 +193,11 @@ module.exports = {
         {
           id: uuidv4(),
           email: 'founding1@sina.com',
+          phone: '+33600000021',
           password_hash: password,
           role: 'listener',
           is_founding: true,
+          accepted_disclaimer: true,
           founding_end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // +1 year
           reputation_score: 4.95,
           toxic_flag: false,
@@ -194,9 +211,11 @@ module.exports = {
         {
           id: uuidv4(),
           email: 'founding2@sina.com',
+          phone: '+33600000022',
           password_hash: password,
           role: 'listener',
           is_founding: true,
+          accepted_disclaimer: true,
           founding_end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // +1 year
           reputation_score: 4.88,
           toxic_flag: false,
@@ -212,6 +231,7 @@ module.exports = {
         {
           id: uuidv4(),
           email: 'both1@sina.com',
+          phone: '+33600000031',
           password_hash: password,
           role: 'both',
           is_founding: false,
@@ -220,6 +240,24 @@ module.exports = {
           low_reputation_flag: false,
           total_xp: 23,
           balance: 12.0,
+          is_active: true,
+          created_at: new Date(),
+          updated_at: new Date(),
+        },
+
+        // Admin
+        {
+          id: uuidv4(),
+          email: 'admin@sina.com',
+          phone: '+33600000099',
+          password_hash: password,
+          role: 'admin',
+          is_founding: false,
+          reputation_score: 5.0,
+          toxic_flag: false,
+          low_reputation_flag: false,
+          total_xp: 0,
+          balance: 0.0,
           is_active: true,
           created_at: new Date(),
           updated_at: new Date(),

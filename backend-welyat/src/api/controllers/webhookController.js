@@ -2,6 +2,8 @@ const { Call, User, BusinessMode } = require('../../models');
 const CallStateMachine = require('../../services/CallStateMachine');
 const XPCalculatorService = require('../../services/XPCalculatorService');
 const logger = require('../../config/logger');
+const Stripe = require('stripe');
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 /**
  * @route   POST /api/v1/webhooks/twilio/status
@@ -140,7 +142,45 @@ const handleTwilioDTMF = async (req, res, next) => {
     }
 };
 
+/**
+ * @route   POST /api/v1/webhooks/stripe
+ * @desc    Handle Stripe Connect account.updated events
+ * @access  Public (Stripe Webhook)
+ */
+const handleStripeWebhook = async (req, res, next) => {
+    const sig = req.headers['stripe-signature'];
+    const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+    let event;
+    try {
+        event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+    } catch (err) {
+        logger.warn(`Stripe webhook signature verification failed: ${err.message}`);
+        return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+
+    if (event.type === 'account.updated') {
+        const account = event.data.object;
+        const userId = account.metadata?.user_id;
+
+        if (userId && account.payouts_enabled) {
+            try {
+                const user = await User.findByPk(userId);
+                if (user && !user.stripe_payouts_enabled) {
+                    await user.update({ stripe_payouts_enabled: true });
+                    logger.info(`Listener ${userId} payouts enabled via Stripe webhook`);
+                }
+            } catch (err) {
+                logger.error(`Error updating user payouts status: ${err.message}`);
+            }
+        }
+    }
+
+    res.json({ received: true });
+};
+
 module.exports = {
     handleTwilioStatus,
-    handleTwilioDTMF
+    handleTwilioDTMF,
+    handleStripeWebhook,
 };
