@@ -19,15 +19,21 @@ const app = express();
 // Trust proxy (important for rate limiting behind proxies)
 app.set('trust proxy', 1);
 
-// Security middleware
-app.use(helmet());
+const globalLimit = rateLimit({
+    legacyHeaders: false,
+    windowMs: 1 * 60 * 1000,
+    max: 100,
+    message: 'Too many requests from this IP'
+});
 
-// CORS configuration
-const corsOptions = {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3001',
-    credentials: true,
-};
-app.use(cors(corsOptions));
+app.use(helmet());
+app.use(cors({
+    origin: process.env.CORS_ALLOW_ORIGINS,
+    optionsSuccessStatus: 200,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    preflightContinue: false,
+}));
+app.use(globalLimit);
 
 // Body parsers
 app.use(express.json());
@@ -39,16 +45,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 // HTTP request logging
 app.use(morganMiddleware.successHandler);
 app.use(morganMiddleware.errorHandler);
-
-// Rate limiting
-const limiter = rateLimit({
-    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 60000, // 1 minute
-    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
-    message: 'Trop de requêtes depuis cette IP, veuillez réessayer plus tard.',
-    standardHeaders: true,
-    legacyHeaders: false,
-});
-app.use(limiter);
 
 // Routes
 app.use('/', routes);

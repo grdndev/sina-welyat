@@ -1,25 +1,16 @@
-const { default: helmet } = require('helmet');
-const { default: rateLimit } = require('express-rate-limit');
 const { requireRole, authenticateToken, requireDisclaimer } = require('../../middleware/auth');
 const adminRoutes = require('./admin');
 const authRoutes = require('./auth');
 const callRoutes = require('./calls');
-const cors = require('cors');
 const disclaimerRoutes = require('./disclaimer');
 const emergencyRoutes = require('./emergency');
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 const payoutRoutes = require('./payouts');
 const subscriptionRoutes = require('./subscriptions');
 const listenerRoutes = require('./listeners');
 const usersRoutes = require('./users');
 const webhookRoutes = require('./webhooks');
-
-const globalLimit = rateLimit({
-    legacyHeaders: false,
-    windowMs: 1 * 60 * 1000,
-    max: 100,
-    message: 'Too many requests from this IP'
-});
 
 const highLimit = rateLimit({
     legacyHeaders: false,
@@ -36,10 +27,6 @@ const lowLimit = rateLimit({
 });
 
 const router = express.Router();
-
-router.use(helmet());
-router.use(cors({ origin: process.env.CORS_ALLOW_ORIGINS }));
-router.use(globalLimit);
 
 router.use('/api/v1/auth', lowLimit, authRoutes);
 router.use('/api/v1/webhooks', webhookRoutes);

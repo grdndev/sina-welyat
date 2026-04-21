@@ -9,6 +9,7 @@ export default defineConfig({
     react()
   ],
   server: {
+    allowedHosts: ['welyat.codialis.com', 'localhost'],
     watch: {
       usePolling: true,
     },

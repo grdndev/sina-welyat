@@ -1,5 +1,5 @@
 services:
-  db:
+  welyat.postgres:
     image: postgres:16-alpine
     container_name: welyat-db-dev
     restart: unless-stopped
@@ -7,8 +7,8 @@ services:
       POSTGRES_DB: welyat_v0_dev
       POSTGRES_USER: welyat
       POSTGRES_PASSWORD: welyat
-    ports:
-      - "5433:5432"
+    networks:
+      - proxy
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -17,7 +17,7 @@ services:
       timeout: 5s
       retries: 10
 
-  backend:
+  welyat.backend:
     build:
       context: ./backend-welyat
       dockerfile: Dockerfile.dev
@@ -29,23 +29,29 @@ services:
       NODE_ENV: development
       HOST: 0.0.0.0
       PORT: 3000
-      DB_HOST: db
+      DB_HOST: welyat.postgres
       DB_PORT: 5432
       DB_NAME: welyat_v0_dev
       DB_USER: welyat
       DB_PASSWORD: welyat
-      FRONTEND_URL: http://localhost:5173
+      FRONTEND_URL: https://welyat.codialis.com
     depends_on:
-      db:
+      welyat.postgres:
         condition: service_healthy
-    ports:
-      - "3000:3000"
+    networks:
+      - proxy
     volumes:
       - ./backend-welyat:/app
       - backend_node_modules:/app/node_modules
-    command: sh -c "npm ci --no-audit --no-fund || npm install; npm run migrate; npm run dev"
+    command: sh -c "chmod +x ./init.sh && ./init.sh && npm run dev"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.welyatapi.rule=Host(`welyatapi.codialis.com`)"
+      - "traefik.http.routers.welyatapi.entrypoints=websecure"
+      - "traefik.http.routers.welyatapi.tls.certresolver=myresolver"
+      - "traefik.http.services.welyatapi.loadbalancer.server.port=3000"
 
-  frontend:
+  welyat.frontend:
     build:
       context: ./frontend-welyat
       dockerfile: Dockerfile.dev
@@ -54,15 +60,24 @@ services:
     environment:
       NODE_ENV: development
       VITE_APP_ID: sina-welyat
+      VITE_API_URL: https://welyatapi.codialis.com/api/v1
     depends_on:
-      - backend
-    ports:
-      - "4000:4000"
+      - welyat.backend
+    networks:
+      - proxy
     volumes:
       - ./frontend-welyat:/app
       - frontend_node_modules:/app/node_modules
-    command: sh -c "npm ci --no-audit --no-fund || npm install; npm run dev -- --host 0.0.0.0 --port 4000 --force"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.welyat.rule=Host(`welyat.codialis.com`)"
+      - "traefik.http.routers.welyat.entrypoints=websecure"
+      - "traefik.http.routers.welyat.tls.certresolver=myresolver"
+      - "traefik.http.services.welyat.loadbalancer.server.port=4000"
 
+networks:
+  proxy:
+    external: true
 volumes:
   postgres_data:
   backend_node_modules:
