@@ -12,6 +12,7 @@ import RedirectIfLoggedIn from "./middlewares/RedirectIfLoggedIn";
 import Register from "./pages/auth/Register";
 import Homepage from "./pages/landingpage/Homepage";
 import TermsOfService from "./pages/support/TermsOfService";
+import XpRewards from "./pages/support/XpRewards";
 import Contact from "./pages/support/Contact";
 import BecomeListener from "./pages/landingpage/BecomeListener";
 import Requirements from "./pages/support/Requirements";
@@ -57,6 +58,7 @@ export const router = createBrowserRouter([
       { path: "/why", element: <Why /> },
       { path: "/privacyPolicy", element: <PrivacyPolicy /> },
       { path: "/communityGuidelines", element: <CommunityGuidelines /> },
+      { path: "/xpRewards", element: <XpRewards /> },
       { path: "/faq", element: <Faq /> },
     ],
   },

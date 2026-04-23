@@ -25,21 +25,10 @@ class CallFlowManager {
 
         logger.info(`CallFlowManager: Starting lifecycle for call ${callId} (${freeMinutes}m free)`);
 
-        // 1. T=0: Micro-fee Hook-up ($0.10)
+        // 1. T=0: Micro-fee Hook-up ($0.20)
         await BillingService.chargeBridgeFee(callId, 'hook_up');
 
-        // 2. T=10m: Micro-fee Checkpoint ($0.10)
-        // Rule: Only if still free and active
-        const feeTimer = setTimeout(async () => {
-            const { Call } = require('../models');
-            const currentCall = await Call.findByPk(callId);
-            if (currentCall && currentCall.status === 'active_free') {
-                await BillingService.chargeBridgeFee(callId, 'checkpoint_10m');
-            }
-        }, 10 * 60 * 1000);
-        timers.push(feeTimer);
-
-        // 3. T = (Free - 2)m: Audio Alert (TTS English)
+        // 2. T = (Free - 2)m: Audio Alert (TTS English)
         const alertTimeMs = (freeMinutes - 2) * 60 * 1000;
         const alertTimer = setTimeout(async () => {
             if (call.twilio_call_sid) {

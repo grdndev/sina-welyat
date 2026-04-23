@@ -8,7 +8,7 @@ const TwilioService = require('./TwilioService');
 class BillingService {
     /**
      * Facturer les frais de mise en relation (Bridge Fees)
-     * WELYAT V0: 0.10$ au décrochage et 0.10$ à T=10:00
+     * WELYAT V0: 0.20$ au décrochage
      */
     async chargeBridgeFee(callId, type = 'bridge_fee_hookup') {
         try {
@@ -18,7 +18,7 @@ class BillingService {
 
             if (!call) throw new Error(`Call ${callId} not found`);
 
-            const amount = 0.10; // Fixe pour WELYAT V0
+            const amount = 0.20; // Fixe pour WELYAT V0
             const user = call.talker;
 
             // Zero Debt Rule applies here too

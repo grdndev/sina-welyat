@@ -55,8 +55,12 @@ export default function Layout({
       {/* HEADER */}
       <header className="w-full flex flex-col md:flex-row items-center justify-between px-4 md:px-10 py-4 md:py-8 gap-4 md:gap-0">
         <div className="flex items-center gap-3 mx-auto md:mx-0">
-          <Link to={'/'}>
-            <img src={logo} className="w-24 md:w-36" />
+          <Link 
+            to={'/'} 
+            className="group relative overflow-hidden flex items-center justify-center px-6 py-3 bg-white/80 hover:bg-white/95 backdrop-blur-xl border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.2)] rounded-[2rem] transition-all duration-500 ease-out"
+          >
+            <div className="absolute inset-0 bg-gradient-to-tr from-white/50 to-transparent pointer-events-none opacity-50"></div>
+            <img src={logo} className="w-24 md:w-32 relative z-10 group-hover:scale-105 transition-transform duration-500 ease-out pointer-events-none" />
           </Link>
         </div>
         <nav className="w-full md:w-auto flex justify-center md:justify-end">

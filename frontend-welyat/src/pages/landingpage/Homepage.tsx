@@ -90,7 +90,10 @@ export default function HomePage() {
                     be alone tonight.
                   </span>
                 </h1>
-                <p className="text-gray-300 text-lg md:text-xl max-w-2xl mx-auto font-light">
+                <h2 className="text-2xl md:text-4xl font-black tracking-tight mt-4" style={{ color: '#F8CD8B' }}>
+                  You talk. We listen.
+                </h2>
+                <p className="text-gray-300 text-lg md:text-xl max-w-2xl mx-auto font-light mt-4">
                   Talk to someone who truly listens. <br className="hidden md:block" />
                   Connect with a verified human in seconds.
                 </p>
@@ -205,19 +208,17 @@ export default function HomePage() {
 
                 {/* Infrastructure Fees */}
                 <div className="bg-white/5 p-6 rounded-3xl border border-white/10">
-                  <div className="flex items-center gap-3 mb-4">
-                    <ShieldCheck className="text-[#F8CD8B]" />
-                    <h3 className="font-bold text-lg uppercase text-white">Tech Fees</h3>
-                  </div>
                   <ul className="space-y-3">
-                    <li className="flex justify-between text-sm text-white/70 border-b border-white/5 pb-2">
-                      <span>Call Start</span>
-                      <span className="font-bold text-white">$0.10</span>
-                    </li>
-                    <li className="flex justify-between text-sm text-white/70">
-                      <span>Every 10 mins</span>
-                      <span className="font-bold text-white">$0.10</span>
-                    </li>
+                    <div className="flex items-center gap-3">
+                      <ShieldCheck className="text-[#F8CD8B]" />
+                      <h3 className="font-bold text-lg uppercase text-white">Tech Fees</h3>
+                    </div>
+                    <div className="text-center py-6 bg-white/5 rounded-2xl">
+                      <div className="text-xs text-white/40 mt-1">Fixed Fee</div>
+                      <div className="text-3xl font-black text-white">
+                        $0.20<span className="text-sm font-normal text-white/50"></span>
+                      </div>
+                    </div>
                   </ul>
                   <p className="mt-4 text-[10px] text-white/30 italic">
                     Covers secure VOIP infrastructure

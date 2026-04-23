@@ -40,13 +40,6 @@ class CallWorker {
                     const freeMinutesThreshold = call.business_mode.free_duration_minutes || 15;
                     const alertAt = freeMinutesThreshold - 2;
 
-                    // T=10 : Second Bridge Fee (0.10$)
-                    if (elapsedMinutes >= 10 && !call.bridge_fee_2_charged) {
-                        await BillingService.chargeBridgeFee(call.id, 0.10, 'bridge_fee');
-                        call.bridge_fee_2_charged = true;
-                        await call.save();
-                    }
-
                     // Audio Alert (2 minutes before end of free phase)
                     if (elapsedMinutes >= alertAt && call.status === 'active_free') {
                         await fsm.alert();

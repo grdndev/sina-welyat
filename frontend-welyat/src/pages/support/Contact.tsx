@@ -25,18 +25,6 @@ const IconBox = ({
 
 const contactInfos = [
   {
-    icon: <MapPin color="#ee9d07" size={28} />,
-    color: '#ee9d07',
-    label: 'Address',
-    value: "785 avenue de l'alverne",
-  },
-  {
-    icon: <Phone color="#22A854" size={28} />,
-    color: '#22A854',
-    label: 'Contact',
-    value: '0262 01 32 12',
-  },
-  {
     icon: <Mail color="#3BA9C3" size={28} />,
     color: '#3BA9C3',
     label: 'Email',
@@ -112,22 +100,6 @@ export default function Contact() {
               alt="Contact workspace"
             />
           </div>
-        </div>
-
-        {/* ── CONTACT INFO (Individual Cards) ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          {contactInfos.map(({ icon, color, label, value }) => (
-            <div
-              key={label}
-              className="group bg-white/30 backdrop-blur-md border border-white/30 shadow-lg p-8 rounded-3xl flex flex-col items-center gap-4 text-center cursor-default  "
-            >
-              <IconBox color={color}>{icon}</IconBox>
-              <div>
-                <strong className="block text-text-primary text-lg mb-1">{label}</strong>
-                <span className="text-text-secondary text-sm font-medium">{value}</span>
-              </div>
-            </div>
-          ))}
         </div>
       </div>
     </Layout>
