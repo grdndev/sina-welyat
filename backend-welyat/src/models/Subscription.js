@@ -19,11 +19,6 @@ const Subscription = sequelize.define(
         type: DataTypes.INTEGER,
         allowNull: false,
       },
-      fast_track_matching: {
-        type: DataTypes.BOOLEAN,
-        allowNull: false,
-        defaultValue: false,
-      },
       priority_matching: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
@@ -42,6 +37,10 @@ const Subscription = sequelize.define(
       price_per_month: {
         type: DataTypes.DECIMAL,
         allowNull: false,
+      },
+      stripe_pricing_id: {
+        type: DataTypes.STRING,
+        allowNull: true,
       },
     },
     {

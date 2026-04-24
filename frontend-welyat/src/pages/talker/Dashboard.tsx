@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Layout from "./Layout";
 import { Phone, MessageCircleHeart, Clock, Star, ChevronRight, PhoneCall, Gift, DollarSign, TrendingUp, Zap } from "lucide-react";
 import { PolarAngleAxis, RadialBar, RadialBarChart, AreaChart, Area, CartesianGrid } from "recharts";
@@ -40,11 +40,43 @@ export default function Dashboard() {
     const [data, setData] = useState<TalkerData | null>(null);
     const [subscription, setSubscription] = useState<UserSubscription | null>(null);
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     useEffect(() => {
-        subscriptionsApi.getCurrent()
-            .then((res) => setSubscription(res.data.subscription))
-            .catch(() => setSubscription(null));
+        const justSubscribed = searchParams.get('subscribed') === 'true';
+
+        const fetchSub = () =>
+            subscriptionsApi.getCurrent()
+                .then((res) => {
+                    const sub = res.data.subscription;
+                    setSubscription(sub);
+                    if (sub && pollRef.current) {
+                        clearInterval(pollRef.current);
+                        pollRef.current = null;
+                        setSearchParams({}, { replace: true });
+                    }
+                })
+                .catch(() => setSubscription(null));
+
+        fetchSub();
+
+        if (justSubscribed) {
+            let attempts = 0;
+            pollRef.current = setInterval(() => {
+                attempts++;
+                if (attempts >= 10) {
+                    clearInterval(pollRef.current!);
+                    pollRef.current = null;
+                    return;
+                }
+                fetchSub();
+            }, 2000);
+        }
+
+        return () => {
+            if (pollRef.current) clearInterval(pollRef.current);
+        };
     }, []);
 
     if (!data) {

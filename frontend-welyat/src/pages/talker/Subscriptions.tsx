@@ -64,11 +64,10 @@ export default function Subscriptions() {
   const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
-    subscriptionsApi
-      .getCurrent()
-      .then((res) => setCurrentSub(res.data.subscription))
-      .catch(() => setCurrentSub(null))
-      .finally(() => setLoading(false));
+    Promise.all([
+      subscriptionsApi.getPlans().then((res) => setPlans(res.plans)),
+      subscriptionsApi.getCurrent().then((res) => setCurrentSub(res.data.subscription)).catch(() => setCurrentSub(null)),
+    ]).finally(() => setLoading(false));
   }, []);
 
   const currentPlanName = currentSub?.Subscription?.name ?? null;
@@ -80,15 +79,11 @@ export default function Subscriptions() {
     }
     setSubscribing(planName);
     setError(null);
-    setSuccess(null);
     try {
-      await subscriptionsApi.subscribe(planId);
-      setSuccess(`You are now subscribed to ${planName}!`);
-      const res = await subscriptionsApi.getCurrent();
-      setCurrentSub(res.data.subscription);
+      const res = await subscriptionsApi.checkout(planId);
+      window.location.href = res.url;
     } catch (e: any) {
       setError(e.message || 'Subscription failed.');
-    } finally {
       setSubscribing(null);
     }
   }

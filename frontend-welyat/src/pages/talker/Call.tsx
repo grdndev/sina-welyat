@@ -1,26 +1,25 @@
 import { useState, useEffect, useRef } from 'react';
 import {
   PhoneOff, Star, Mic, MicOff,
-  AlertTriangle, CheckCircle, CreditCard, ArrowLeft,
+  AlertTriangle, CheckCircle, ArrowLeft,
   PhoneCall, Mail, ChevronRight, Lock, Phone,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import logo from '../../assets/logo.png';
 import { authApi } from '../../api/auth';
 import { callsApi } from '../../api/calls';
+import { subscriptionsApi, type UserSubscription } from '../../api/subscriptions';
 import { useAuth } from '../../middlewares/Auth';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const FREE_MINUTES = 15;
 const PER_MINUTE_RATE = 0.33;
 const SERVICE_FEE = 0.20;
-const PREAUTH_AMOUNT = 10;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Phase =
   | 'filters'
-  | 'preauth_form'
-  | 'preauth_processing'
+  | 'payment_checking'
   | 'preauth_fail'
   | 'auth'
   | 'matching'
@@ -39,18 +38,6 @@ function formatDuration(seconds: number): string {
   const s = seconds % 60;
   if (h > 0) return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-}
-
-function formatCardNumber(value: string): string {
-  const digits = value.replace(/\D/g, '').slice(0, 16);
-  return digits.replace(/(\d{4})(?=\d)/g, '$1 ').trim();
-}
-
-function formatExpiry(value: string): string {
-  const digits = value.replace(/\D/g, '').slice(0, 4);
-  if (digits.length >= 3) return digits.slice(0, 2) + '/' + digits.slice(2);
-  if (digits.length === 2) return digits + '/';
-  return digits;
 }
 
 function calculateBilling(callSeconds: number) {
@@ -232,15 +219,29 @@ export default function Call() {
   const { setSession } = useAuth();
   const [phase, setPhase] = useState<Phase>('filters');
 
+  // Subscription
+  const [subscription, setSubscription] = useState<UserSubscription | null | undefined>(undefined);
+
+  useEffect(() => {
+    subscriptionsApi.getCurrent()
+      .then((res) => setSubscription(res.data?.subscription))
+      .catch(() => setSubscription(null));
+  }, []);
+
+  const canFilterGender = subscription?.is_active && subscription.Subscription?.gender_filter === true;
+  const canFilterAge = subscription?.is_active && subscription.Subscription?.age_filter === true;
+
   // Filter state (sent to backend on call initiation)
   const [filterGender, setFilterGender] = useState<'any' | 'male' | 'female'>('any');
   const [filterAge, setFilterAge] = useState<AgeFilter>('any');
 
-  // Card form state
-  const [cardNumber, setCardNumber] = useState('');
-  const [cardExpiry, setCardExpiry] = useState('');
-  const [cardCvc, setCardCvc] = useState('');
-  const [cardName, setCardName] = useState('');
+  useEffect(() => {
+    if (!canFilterGender) setFilterGender('any');
+  }, [canFilterGender]);
+
+  useEffect(() => {
+    if (!canFilterAge) setFilterAge('any');
+  }, [canFilterAge]);
 
   // Call state
   const [callSeconds, setCallSeconds] = useState(0);
@@ -254,6 +255,9 @@ export default function Call() {
   const [authPassword, setAuthPassword] = useState('');
   const [authError, setAuthError] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
+
+  // 2nd preauth ref
+  const secondPreauthDoneRef = useRef(false);
 
   // Call API state
   const [callId, setCallId] = useState<string | null>(null);
@@ -337,25 +341,65 @@ export default function Call() {
     };
   }, [phase, filterGender, filterAge]);
 
-  // Pre-auth processing mock: 1 s then check login
+  // On mount: handle return from Stripe setup page
   useEffect(() => {
-    if (phase !== 'preauth_processing') return;
-    const id = setTimeout(() => {
-      const APP_ID = import.meta.env.VITE_APP_ID || 'sina-welyat';
-      const raw = localStorage.getItem(`${APP_ID}tokens`);
-      try {
-        const tokens = JSON.parse(raw || 'null');
-        if (tokens?.token) {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('setup_complete') === 'true') {
+      window.history.replaceState({}, '', window.location.pathname);
+      callsApi.finalizeSetup()
+        .catch(() => {/* best effort */})
+        .finally(() => setPhase('payment_checking'));
+    }
+  }, []);
+
+  // payment_checking: check if user has a default PM, or redirect to Stripe setup
+  useEffect(() => {
+    if (phase !== 'payment_checking') return;
+    let cancelled = false;
+    callsApi.getPaymentStatus()
+      .then(res => {
+        if (cancelled) return;
+        if (res.data.hasPaymentMethod) {
           setPhase('matching');
         } else {
-          setPhase('auth');
+          callsApi.setupPayment()
+            .then(r => {
+              if (cancelled) return;
+              window.location.href = r.url;
+            })
+            .catch(() => { if (!cancelled) setPhase('preauth_fail'); });
         }
-      } catch {
-        setPhase('auth');
-      }
-    }, 1000);
-    return () => clearTimeout(id);
+      })
+      .catch(() => { if (!cancelled) setPhase('preauth_fail'); });
+    return () => { cancelled = true; };
   }, [phase]);
+
+  // 2nd pre-auth at 40 min mark
+  useEffect(() => {
+    if (phase !== 'active' || callSeconds !== 2400 || secondPreauthDoneRef.current || !callId) return;
+    secondPreauthDoneRef.current = true;
+    callsApi.secondPreauth(callId).catch(() => {
+      setMatchError("We're reaching your session limit. The call will end shortly.");
+      setLimitWarningSeconds(8);
+      setPhase('limit_warn');
+    });
+  }, [phase, callSeconds, callId]);
+
+  // Reset secondPreauthDoneRef when call ends
+  useEffect(() => {
+    if (phase === 'ended') {
+      secondPreauthDoneRef.current = false;
+    }
+  }, [phase]);
+
+  async function handleContinue() {
+    const APP_ID = import.meta.env.VITE_APP_ID || 'sina-welyat';
+    const raw = localStorage.getItem(`${APP_ID}tokens`);
+    let hasToken = false;
+    try { hasToken = !!JSON.parse(raw || 'null')?.token; } catch {}
+    if (!hasToken) { setPhase('auth'); return; }
+    setPhase('payment_checking');
+  }
 
   async function handleAuth(e: React.FormEvent) {
     e.preventDefault();
@@ -366,17 +410,12 @@ export default function Call() {
         ? await authApi.login(authPhone, authPassword)
         : await authApi.register(authPhone, authPassword, authEmail || undefined);
       setSession!(res.data.user as any, { token: res.data.token });
-      setPhase('matching');
+      setPhase('payment_checking');
     } catch (err: any) {
       setAuthError(err.message || 'Authentication failed');
     } finally {
       setAuthLoading(false);
     }
-  }
-
-  function handlePreAuthSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setPhase('preauth_processing');
   }
 
   async function handleEndCall() {
@@ -431,27 +470,31 @@ export default function Call() {
             <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-5 border border-white/60 shadow-sm mb-4">
               <div className="flex items-center gap-2 mb-3 text-sm font-bold text-text-primary">
                 <span>♀♂</span> Gender Preference
+                {!canFilterGender && <Lock size={13} style={{ color: '#a0a0b0' }} />}
               </div>
               <div className="flex gap-2 flex-wrap">
                 {([
-                  { value: 'any', label: 'No preference', price: 0 },
-                  { value: 'female', label: 'Female', price: 2 },
-                  { value: 'male', label: 'Male', price: 2 },
-                ] as const).map(({ value, label, price }) => {
+                  { value: 'any', label: 'No preference' },
+                  { value: 'female', label: 'Female' },
+                  { value: 'male', label: 'Male' },
+                ] as const).map(({ value, label }) => {
+                  const locked = !canFilterGender && value !== 'any';
                   const selected = filterGender === value;
                   return (
                     <button
                       key={value}
-                      onClick={() => setFilterGender(value)}
+                      onClick={() => !locked && setFilterGender(value)}
+                      disabled={locked}
                       className="flex items-center gap-1.5 px-4 py-2.5 rounded-full text-sm font-semibold transition border-2"
                       style={{
                         borderColor: selected ? '#7A4CFF' : '#e5e7eb',
-                        background: selected ? 'linear-gradient(135deg, #7A4CFF, #B78CFF)' : 'white',
-                        color: selected ? 'white' : '#6F6F7A',
+                        background: locked ? '#f3f4f6' : selected ? 'linear-gradient(135deg, #7A4CFF, #B78CFF)' : 'white',
+                        color: locked ? '#c0c0cc' : selected ? 'white' : '#6F6F7A',
+                        cursor: locked ? 'not-allowed' : 'pointer',
                       }}
                     >
-                      {selected && <CheckCircle size={14} />}
-                      {label}{price > 0 ? ` +$${price}` : ''}
+                      {locked ? <Lock size={12} /> : selected && <CheckCircle size={14} />}
+                      {label}
                     </button>
                   );
                 })}
@@ -462,28 +505,32 @@ export default function Call() {
             <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-5 border border-white/60 shadow-sm mb-6">
               <div className="flex items-center gap-2 mb-3 text-sm font-bold text-text-primary">
                 <span>🎂</span> Age Preference
+                {!canFilterAge && <Lock size={13} style={{ color: '#a0a0b0' }} />}
               </div>
               <div className="flex gap-2 flex-wrap">
                 {([
-                  { value: 'any', label: 'No preference', price: 0 },
-                  { value: '18-25', label: '18–25', price: 1 },
-                  { value: '25-40', label: '25–40', price: 1 },
-                  { value: '40+', label: '40+', price: 1 },
-                ] as const).map(({ value, label, price }) => {
+                  { value: 'any', label: 'No preference' },
+                  { value: '18-25', label: '18–25' },
+                  { value: '25-40', label: '25–40' },
+                  { value: '40+', label: '40+' },
+                ] as const).map(({ value, label }) => {
+                  const locked = !canFilterAge && value !== 'any';
                   const selected = filterAge === value;
                   return (
                     <button
                       key={value}
-                      onClick={() => setFilterAge(value)}
+                      onClick={() => !locked && setFilterAge(value)}
+                      disabled={locked}
                       className="flex items-center gap-1.5 px-4 py-2.5 rounded-full text-sm font-semibold transition border-2"
                       style={{
                         borderColor: selected ? '#7A4CFF' : '#e5e7eb',
-                        background: selected ? 'linear-gradient(135deg, #7A4CFF, #B78CFF)' : 'white',
-                        color: selected ? 'white' : '#6F6F7A',
+                        background: locked ? '#f3f4f6' : selected ? 'linear-gradient(135deg, #7A4CFF, #B78CFF)' : 'white',
+                        color: locked ? '#c0c0cc' : selected ? 'white' : '#6F6F7A',
+                        cursor: locked ? 'not-allowed' : 'pointer',
                       }}
                     >
-                      {selected && <CheckCircle size={14} />}
-                      {label}{price > 0 ? ` (+$${price})` : ''}
+                      {locked ? <Lock size={12} /> : selected && <CheckCircle size={14} />}
+                      {label}
                     </button>
                   );
                 })}
@@ -494,151 +541,33 @@ export default function Call() {
               Take your time — or skip and start instantly.
             </p>
 
-            {(() => {
-              const filterCost = (filterGender !== 'any' ? 2 : 0) + (filterAge !== 'any' ? 1 : 0);
-              return (
-                <>
-                  <button
-                    onClick={() => setPhase('preauth_form')}
-                    className="w-full py-4 rounded-2xl font-bold text-white text-lg transition hover:opacity-90 mb-3"
-                    style={{
-                      background: 'linear-gradient(135deg, #7A4CFF 0%, #B78CFF 100%)',
-                      boxShadow: '0 6px 24px rgba(122,76,255,0.4)',
-                    }}
-                  >
-                    {filterCost > 0 ? `Continue — $${filterCost} extra` : 'Continue'}
-                  </button>
-                  <button
-                    onClick={() => {
-                      setFilterGender('any');
-                      setFilterAge('any');
-                      setPhase('preauth_form');
-                    }}
-                    className="w-full py-2 text-sm font-semibold underline transition"
-                    style={{ color: '#6F6F7A' }}
-                  >
-                    Start instantly (no filters)
-                  </button>
-                </>
-              );
-            })()}
+            <button
+              onClick={handleContinue}
+              className="w-full py-4 rounded-2xl font-bold text-white text-lg transition hover:opacity-90 mb-3"
+              style={{
+                background: 'linear-gradient(135deg, #7A4CFF 0%, #B78CFF 100%)',
+                boxShadow: '0 6px 24px rgba(122,76,255,0.4)',
+              }}
+            >
+              Continue
+            </button>
+            <button
+              onClick={() => {
+                setFilterGender('any');
+                setFilterAge('any');
+                handleContinue();
+              }}
+              className="w-full py-2 text-sm font-semibold underline transition"
+              style={{ color: '#6F6F7A' }}
+            >
+              Start instantly (no filters)
+            </button>
           </div>
         </Screen>
       )}
 
-      {/* ──────────── SCREEN 2: PRE-AUTH FORM ──────────── */}
-      {phase === 'preauth_form' && (
-        <Screen>
-          <button
-            onClick={() => setPhase('filters')}
-            className="absolute top-6 left-6 flex items-center gap-2 text-sm font-semibold text-text-secondary hover:text-text-primary transition"
-          >
-            <ArrowLeft size={18} /> Back
-          </button>
-
-          <div className="w-full max-w-sm">
-            <div className="flex items-center justify-center gap-2 mb-6">
-              <Lock size={18} style={{ color: '#8E5CFF' }} />
-              <span className="text-sm font-semibold" style={{ color: '#8E5CFF' }}>Secure payment</span>
-            </div>
-
-            <h2 className="text-2xl font-extrabold text-text-primary text-center mb-1">
-              Add your card
-            </h2>
-            <p className="text-center text-sm mb-6" style={{ color: '#6F6F7A' }}>
-              Pre-authorization of <strong>${PREAUTH_AMOUNT}</strong> — not charged now
-            </p>
-
-            <form onSubmit={handlePreAuthSubmit} className="flex flex-col gap-4">
-              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-5 border border-white/60 shadow-sm flex flex-col gap-4">
-                {/* Card number */}
-                <div className="flex flex-col gap-1">
-                  <label className="text-xs font-bold text-text-primary uppercase tracking-wider">Card number</label>
-                  <div className="flex items-center border border-gray-200 rounded-xl px-3 bg-gray-50 focus-within:ring-2" style={{ '--tw-ring-color': '#8e5cff' } as any}>
-                    <CreditCard size={16} className="text-gray-400 shrink-0" />
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      placeholder="4242 4242 4242 4242"
-                      value={cardNumber}
-                      onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
-                      maxLength={19}
-                      required
-                      className="ml-2 w-full p-3 text-sm bg-transparent focus:outline-none font-mono"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  {/* Expiry */}
-                  <div className="flex flex-col gap-1">
-                    <label className="text-xs font-bold text-text-primary uppercase tracking-wider">Expiry</label>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      placeholder="MM/AA"
-                      value={cardExpiry}
-                      onChange={(e) => setCardExpiry(formatExpiry(e.target.value))}
-                      maxLength={5}
-                      required
-                      className="border border-gray-200 rounded-xl p-3 text-sm bg-gray-50 focus:outline-none focus:ring-2 font-mono"
-                      style={{ '--tw-ring-color': '#8e5cff' } as any}
-                    />
-                  </div>
-                  {/* CVC */}
-                  <div className="flex flex-col gap-1">
-                    <label className="text-xs font-bold text-text-primary uppercase tracking-wider">CVC</label>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      placeholder="•••"
-                      value={cardCvc}
-                      onChange={(e) => setCardCvc(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                      maxLength={4}
-                      required
-                      className="border border-gray-200 rounded-xl p-3 text-sm bg-gray-50 focus:outline-none focus:ring-2 font-mono"
-                      style={{ '--tw-ring-color': '#8e5cff' } as any}
-                    />
-                  </div>
-                </div>
-
-                {/* Name */}
-                <div className="flex flex-col gap-1">
-                  <label className="text-xs font-bold text-text-primary uppercase tracking-wider">Name on card</label>
-                  <input
-                    type="text"
-                    placeholder="Jean Dupont"
-                    value={cardName}
-                    onChange={(e) => setCardName(e.target.value)}
-                    required
-                    className="border border-gray-200 rounded-xl p-3 text-sm bg-gray-50 focus:outline-none focus:ring-2"
-                    style={{ '--tw-ring-color': '#8e5cff' } as any}
-                  />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                className="w-full py-4 rounded-2xl font-bold text-white text-base transition hover:opacity-90"
-                style={{
-                  background: 'linear-gradient(135deg, #7A4CFF 0%, #B78CFF 100%)',
-                  boxShadow: '0 6px 24px rgba(122,76,255,0.4)',
-                }}
-              >
-                Confirmer — ${PREAUTH_AMOUNT} pre-authorized
-              </button>
-
-              <p className="text-center text-xs" style={{ color: '#6F6F7A' }}>
-                <Lock size={10} className="inline mr-1" />
-                SSL encrypted. You will not be charged now.
-              </p>
-            </form>
-          </div>
-        </Screen>
-      )}
-
-      {/* ──────────── SCREEN 3: PRE-AUTH PROCESSING ──────────── */}
-      {phase === 'preauth_processing' && (
+      {/* ──────────── SCREEN: PAYMENT CHECKING ──────────── */}
+      {phase === 'payment_checking' && (
         <Screen>
           <div className="flex flex-col items-center gap-6 text-center">
             <div className="relative w-20 h-20">
@@ -648,8 +577,8 @@ export default function Call() {
               </div>
             </div>
             <div>
-              <h2 className="text-xl font-extrabold text-text-primary mb-1">Verifying payment…</h2>
-              <p className="text-sm" style={{ color: '#6F6F7A' }}>Pre-authorization of ${PREAUTH_AMOUNT} — this will not be charged</p>
+              <h2 className="text-xl font-extrabold text-text-primary mb-1">Checking payment…</h2>
+              <p className="text-sm" style={{ color: '#6F6F7A' }}>Just a moment</p>
             </div>
             <div className="flex gap-1.5">
               {[0, 1, 2].map((i) => (
@@ -660,7 +589,7 @@ export default function Call() {
         </Screen>
       )}
 
-      {/* ──────────── SCREEN 3c: PREAUTH FAIL ──────────── */}
+      {/* ──────────── SCREEN: PREAUTH FAIL ──────────── */}
       {phase === 'preauth_fail' && (
         <Screen>
           <div className="w-full max-w-sm flex flex-col items-center gap-6 text-center">
@@ -691,11 +620,11 @@ export default function Call() {
         </Screen>
       )}
 
-      {/* ──────────── SCREEN 3b: AUTH ──────────── */}
+      {/* ──────────── SCREEN: AUTH ──────────── */}
       {phase === 'auth' && (
         <Screen>
           <button
-            onClick={() => setPhase('preauth_form')}
+            onClick={() => setPhase('filters')}
             className="absolute top-6 left-6 flex items-center gap-2 text-sm font-semibold text-text-secondary hover:text-text-primary transition"
           >
             <ArrowLeft size={18} /> Back

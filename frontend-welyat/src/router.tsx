@@ -47,7 +47,6 @@ export const router = createBrowserRouter([
       {
         element: <AuthProtection />,
         children: [
-          { path: "/welcome", element: <Welcome /> },
           { path: "/admin", element: <DashboardAdmin /> },
           { path: "/admin/sessions", element: <AdminSessions /> },
           { path: "/admin/analytics", element: <AdminAnalytics /> },
@@ -58,6 +57,7 @@ export const router = createBrowserRouter([
           {
             element: <DisclaimerProtection />,
             children: [
+              { path: "/welcome", element: <Welcome /> },
               { path: "/talker", element: <DashboardTalker /> },
               { path: "/subscriptions", element: <Subscriptions /> },
             ],

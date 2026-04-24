@@ -40,7 +40,7 @@ export default function Disclaimers() {
     try {
       const res = await disclaimerApi.accept(version);
       acceptDisclaimer?.(res.data.token);
-      navigate(user?.role === 'listener' ? '/listener' : '/talker', { replace: true });
+      navigate('/welcome', { replace: true });
     } catch (e: any) {
       setError(e.message ?? 'An error occurred');
     } finally {

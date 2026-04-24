@@ -55,7 +55,7 @@ function provideAuth() {
     function login(user: User, tokens: any) {
         dataToLocalStorage("user", user, setUser);
         dataToLocalStorage("tokens", tokens, setTokens);
-        navigate("/welcome");
+        navigate(user.accepted_disclaimer ? "/welcome" : "/disclaimers");
     }
 
     // Like login but without navigating — used when auth happens mid-flow (e.g. call flow)

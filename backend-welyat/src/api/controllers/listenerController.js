@@ -1,8 +1,6 @@
 const User = require('../../models/User');
-const Stripe = require('stripe');
+const stripeService = require('../../services/StripeService');
 const logger = require('../../config/logger');
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 /**
  * GET /api/v1/listeners/status
@@ -49,25 +47,16 @@ const setupPayout = async (req, res, next) => {
         let accountId = user.stripe_account_id;
 
         if (!accountId) {
-            const account = await stripe.accounts.create({
-                type: 'express',
-                email: user.email || undefined,
-                metadata: { user_id: user.id },
-                capabilities: {
-                    transfers: { requested: true },
-                },
-            });
+            const account = await stripeService.createConnectAccount({ email: user.email, userId: user.id });
             accountId = account.id;
             await user.update({ stripe_account_id: accountId });
-            logger.info(`Stripe Connect account created: ${accountId} for user ${user.id}`);
         }
 
         const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-        const accountLink = await stripe.accountLinks.create({
-            account: accountId,
-            refresh_url: `${baseUrl}/listener/payout-setup`,
-            return_url: `${baseUrl}/listener?payout=return`,
-            type: 'account_onboarding',
+        const accountLink = await stripeService.createAccountLink({
+            accountId,
+            refreshUrl: `${baseUrl}/listener/payout-setup`,
+            returnUrl: `${baseUrl}/listener?payout=return`,
         });
 
         return res.json({ success: true, data: { url: accountLink.url } });
@@ -87,7 +76,7 @@ const getPayoutStatus = async (req, res, next) => {
         if (!user) return res.status(404).json({ success: false, error: { message: 'User not found' } });
 
         if (user.stripe_account_id && !user.stripe_payouts_enabled) {
-            const account = await stripe.accounts.retrieve(user.stripe_account_id);
+            const account = await stripeService.retrieveConnectAccount(user.stripe_account_id);
             if (account.payouts_enabled) {
                 await user.update({ stripe_payouts_enabled: true });
             }

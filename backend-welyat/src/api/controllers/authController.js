@@ -3,9 +3,7 @@ const { body, validationResult } = require('express-validator');
 const logger = require('../../config/logger');
 const { generateToken } = require('../../utils');
 const { Op } = require('sequelize');
-const StripeService = require('../../services/StripeService');
-
-const stripeService = new StripeService();
+const stripeService = require('../../services/StripeService');
 
 /**
  * @route   POST /api/v1/auth/register

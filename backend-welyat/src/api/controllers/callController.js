@@ -1,4 +1,4 @@
-const { Call, User, BusinessMode, Transaction, Rating } = require('../../models');
+const { Call, CallPaymentIntent, User, BusinessMode, Transaction, Rating } = require('../../models');
 const CallStateMachine = require('../../services/CallStateMachine');
 const ScoringService = require('../../services/ScoringService');
 const MatchingService = require('../../services/MatchingService');
@@ -7,6 +7,49 @@ const StripeService = require('../../services/StripeService');
 const logger = require('../../config/logger');
 const { Op } = require('sequelize');
 const { body } = require('express-validator');
+
+async function billCall(call) {
+    const intents = await CallPaymentIntent.findAll({
+        where: { call_id: call.id, status: 'authorized' },
+        order: [['created_at', 'ASC']],
+    });
+    if (!intents.length) return false;
+
+    const FREE_SECONDS = 15 * 60;
+    const SERVICE_FEE_CENTS = 20;
+    const RATE_CENTS_PER_SECOND = 0.33 / 60 * 100;
+    const totalSeconds = (call.duration_free_seconds || 0) + (call.duration_paid_seconds || 0);
+    const billableSeconds = Math.max(0, totalSeconds - FREE_SECONDS);
+    let remainingCents = Math.round(SERVICE_FEE_CENTS + billableSeconds * RATE_CENTS_PER_SECOND);
+
+    let billingSuccess = false;
+    for (const intent of intents) {
+        if (remainingCents <= 0) {
+            try {
+                await StripeService.cancelPaymentIntent(intent.stripe_payment_intent_id);
+                await intent.update({ status: 'cancelled' });
+            } catch { /* best effort */ }
+            continue;
+        }
+        const captureCents = Math.min(remainingCents, intent.amount_cents);
+        try {
+            await StripeService.captureCallPayment(intent.stripe_payment_intent_id, captureCents);
+            await intent.update({ status: 'captured', captured_cents: captureCents });
+            remainingCents -= captureCents;
+            billingSuccess = true;
+        } catch (err) {
+            logger.error(`Capture failed for PI ${intent.stripe_payment_intent_id}: ${err.message}`);
+            break;
+        }
+    }
+
+    if (billingSuccess) {
+        const totalCents = Math.round(SERVICE_FEE_CENTS + billableSeconds * RATE_CENTS_PER_SECOND);
+        await call.update({ total_cost_client: (totalCents / 100).toFixed(2) });
+        logger.info(`Billing captured for call ${call.id}: $${(totalCents / 100).toFixed(2)}`);
+    }
+    return billingSuccess;
+}
 
 /**
  * @route   POST /api/v1/calls/initiate
@@ -60,26 +103,24 @@ const initiateCall = async (req, res, next) => {
             })
         }
 
-        // 4. Autorisation Stripe (Buffer technique de 20.00$ obligatoire pour WELYAT V0)
-        // Zero Debt Rule: No match without pre-auth
+        // 4. Autorisation Stripe — Zero Debt Rule: No match without pre-auth
+        let pendingPreauth = null;
         if (!user.is_trial) {
             if (!user.stripe_customer_id) {
                 return res.status(402).json({
                     success: false,
                     error: { message: 'Stripe account required. Please link a payment method.' },
                 });
-            } else {
-                try {
-                    const authorization = await StripeService.preAuthorizeCall(user.stripe_customer_id);
-                    // On pourrait stocker le payment_intent_id dans une session temporaire ou meta
-                    logger.info(`Pre-auth success for user ${talkerId}: ${authorization.id}`);
-                } catch (stripeError) {
-                    logger.error(`Stripe pre-auth failed for user ${talkerId}: ${stripeError.message}`);
-                    return res.status(402).json({
-                        success: false,
-                        error: { message: "Payment authorization of 20.00$ failed. Please check your card." }
-                    });
-                }
+            }
+            try {
+                pendingPreauth = await StripeService.preAuthorizeCall(user.stripe_customer_id);
+                logger.info(`Pre-auth success for user ${talkerId}: ${pendingPreauth.id}`);
+            } catch (stripeError) {
+                logger.error(`Stripe pre-auth failed for user ${talkerId}: ${stripeError.message}`);
+                return res.status(402).json({
+                    success: false,
+                    error: { message: 'Payment authorization failed. Please check your card.' },
+                });
             }
         }
 
@@ -111,8 +152,16 @@ const initiateCall = async (req, res, next) => {
             talker_id: talkerId,
             listener_id: listener.id,
             business_mode_id: businessMode.id,
-            twilio_call_sid: twilioCall.sid
+            twilio_call_sid: twilioCall.sid,
         });
+
+        if (pendingPreauth) {
+            await CallPaymentIntent.create({
+                call_id: call.id,
+                stripe_payment_intent_id: pendingPreauth.id,
+                amount_cents: 1000,
+            });
+        }
 
         if (user.is_trial) {
             setTimeout(async () => {
@@ -283,6 +332,7 @@ const endCall = [
             }
 
             const fsm = new CallStateMachine(call);
+            await billCall(call);
             await fsm.end('Manually ended by user');
 
             // Note: Dans un environnement réel, on couperait aussi l'appel Twilio ici
@@ -357,11 +407,85 @@ const rateCall = [
     }
 ]
 
+const getPaymentStatus = async (req, res, next) => {
+    try {
+        const user = await User.findByPk(req.user.id);
+        if (!user.stripe_customer_id) {
+            return res.json({ success: true, data: { hasPaymentMethod: false } });
+        }
+        const hasPaymentMethod = await StripeService.hasDefaultPaymentMethod(user.stripe_customer_id);
+        res.json({ success: true, data: { hasPaymentMethod } });
+    } catch (err) {
+        next(err);
+    }
+};
+
+const setupPayment = async (req, res, next) => {
+    try {
+        let user = await User.findByPk(req.user.id);
+        if (!user.stripe_customer_id) {
+            const customer = await StripeService.createCustomer(user.id, user.email);
+            await user.update({ stripe_customer_id: customer.id });
+            user = await User.findByPk(req.user.id);
+        }
+        const session = await StripeService.createSetupCheckoutSession({
+            customerId: user.stripe_customer_id,
+            successUrl: `${process.env.FRONTEND_URL}/call?setup_complete=true`,
+            cancelUrl: `${process.env.FRONTEND_URL}/call`,
+            userId: user.id,
+        });
+        res.json({ url: session.url });
+    } catch (err) {
+        next(err);
+    }
+};
+
+const finalizeSetup = async (req, res, next) => {
+    try {
+        const user = await User.findByPk(req.user.id);
+        if (!user.stripe_customer_id) {
+            return res.json({ success: true, data: { hasPaymentMethod: false } });
+        }
+        const hasPaymentMethod = await StripeService.finalizeSetupFromSession(user.stripe_customer_id);
+        res.json({ success: true, data: { hasPaymentMethod } });
+    } catch (err) {
+        next(err);
+    }
+};
+
+const secondPreauth = async (req, res, next) => {
+    try {
+        const { id: userId } = req.user;
+        const { id: callId } = req.params;
+        const call = await Call.findByPk(callId);
+        if (!call || call.talker_id !== userId) {
+            return res.status(404).json({ success: false, error: { message: 'Call not found' } });
+        }
+        const user = await User.findByPk(userId);
+        const authorization = await StripeService.preAuthorizeCall(user.stripe_customer_id);
+        await CallPaymentIntent.create({
+            call_id: callId,
+            stripe_payment_intent_id: authorization.id,
+            amount_cents: 1000,
+        });
+        logger.info(`Additional pre-auth for call ${callId}: ${authorization.id}`);
+        res.json({ success: true });
+    } catch (err) {
+        logger.error(`Pre-auth failed for call ${req.params.id}: ${err.message}`);
+        res.status(402).json({ success: false, error: { message: 'Pre-authorization failed' } });
+    }
+};
+
 module.exports = {
     initiateCall,
     getActiveCall,
     getMyCalls,
     getCallDetails,
     endCall,
-    rateCall
+    rateCall,
+    getPaymentStatus,
+    setupPayment,
+    finalizeSetup,
+    secondPreauth,
+    billCall,
 };

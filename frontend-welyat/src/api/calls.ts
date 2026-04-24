@@ -32,4 +32,16 @@ export const callsApi = {
 
   rate: (callId: string, data: { rating: number; comment?: string }) =>
     api.post<{ success: boolean; message: string }>(`/calls/${callId}/rate`, data),
+
+  getPaymentStatus: () =>
+    api.get<{ success: boolean; data: { hasPaymentMethod: boolean } }>('/calls/payment-status'),
+
+  setupPayment: () =>
+    api.post<{ url: string }>('/calls/setup-payment', {}),
+
+  finalizeSetup: () =>
+    api.post<{ success: boolean; data: { hasPaymentMethod: boolean } }>('/calls/finalize-setup', {}),
+
+  secondPreauth: (callId: string) =>
+    api.post<{ success: boolean }>(`/calls/${callId}/second-preauth`, {}),
 };

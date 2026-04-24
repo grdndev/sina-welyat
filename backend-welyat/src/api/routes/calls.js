@@ -32,6 +32,11 @@ router.get('/active', callController.getActiveCall);
  */
 router.get('/my-calls', callController.getMyCalls);
 
+router.get('/payment-status', callController.getPaymentStatus);
+router.post('/setup-payment', callController.setupPayment);
+router.post('/finalize-setup', callController.finalizeSetup);
+router.post('/:id/second-preauth', callController.secondPreauth);
+
 /**
  * @route   GET /api/v1/calls/:id
  * @desc    Get detailed info of a specific call

@@ -4,7 +4,6 @@ export interface SubscriptionPlan {
   id: string;
   name: string;
   free_minutes_per_month: number;
-  fast_track_matching: boolean;
   priority_matching: boolean;
   gender_filter: boolean;
   age_filter: boolean;
@@ -22,6 +21,9 @@ export interface UserSubscription {
 }
 
 export const subscriptionsApi = {
+  getPlans: () =>
+    api.get<{ plans: SubscriptionPlan[] }>('/subscriptions/plans'),
+
   getCurrent: () =>
     api.get<{ success: boolean; data: { subscription: UserSubscription | null } }>(
       '/subscriptions/current'
@@ -31,6 +33,9 @@ export const subscriptionsApi = {
     api.post<{ success: boolean; data: UserSubscription }>('/subscriptions/subscribe', {
       subscriptionId,
     }),
+
+  checkout: (subscriptionId: string) =>
+    api.post<{ url: string }>('/subscriptions/checkout', { subscriptionId }),
 
   cancel: () =>
     api.post<{ success: boolean; message: string }>('/subscriptions/cancel', {}),

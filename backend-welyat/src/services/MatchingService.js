@@ -91,7 +91,7 @@ class MatchingService {
 
             // Prioriser les listeners
             let priorityListeners = [];
-            if (totalPaid > 5) {
+            if (totalPaid > 5 || (subscription && subscription.Subscription && subscription.Subscription.priority_matching)) {
                 priorityListeners = [...highPriorityListeners, ...lowPriorityListeners];
             } else {
                 priorityListeners = [...lowPriorityListeners, ...highPriorityListeners];

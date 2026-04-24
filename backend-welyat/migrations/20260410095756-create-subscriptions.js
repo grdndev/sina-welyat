@@ -20,11 +20,6 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
       },
-      fast_track_matching: {
-        type: Sequelize.BOOLEAN,
-        allowNull: false,
-        defaultValue: false,
-      },
       priority_matching: {
         type: Sequelize.BOOLEAN,
         allowNull: false,
@@ -43,6 +38,10 @@ module.exports = {
       price_per_month: {
         type: Sequelize.DECIMAL,
         allowNull: false,
+      },
+      stripe_pricing_id: {
+        type: Sequelize.STRING,
+        allowNull: true,
       },
       created_at: {
         type: Sequelize.DATE,
@@ -115,14 +114,14 @@ module.exports = {
     const now = new Date();
     await queryInterface.bulkInsert('subscriptions', [
       {
-        id: uuidv4(), 
+        id: uuidv4(),
         name: 'Essential',
         free_minutes_per_month: 300,
         gender_filter: true,
         age_filter: false,
-        fast_track_matching: true,
         priority_matching: false,
         price_per_month: 9.99,
+        stripe_pricing_id: 'price_1TPg0CCPgHZfrGuJKJXen3zE',
         created_at: now,
         updated_at: now,
       },
@@ -132,9 +131,9 @@ module.exports = {
         free_minutes_per_month: 720,
         gender_filter: true,
         age_filter: true,
-        fast_track_matching: true,
         priority_matching: false,
         price_per_month: 19.99,
+        stripe_pricing_id: 'price_1TPg2ACPgHZfrGuJ6U7Meo95',
         created_at: now,
         updated_at: now,
       },
@@ -144,9 +143,9 @@ module.exports = {
         free_minutes_per_month: 2400,
         gender_filter: true,
         age_filter: true,
-        fast_track_matching: true,
         priority_matching: true,
         price_per_month: 49.99,
+        stripe_pricing_id: 'price_1TPg2bCPgHZfrGuJD8ipMVNv',
         created_at: now,
         updated_at: now,
       },

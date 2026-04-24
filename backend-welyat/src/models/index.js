@@ -2,6 +2,7 @@
 const Boost = require('./Boost');
 const BusinessMode = require('./BusinessMode');
 const Call = require('./Call');
+const CallPaymentIntent = require('./CallPaymentIntent');
 const DisclaimerAccepted = require('./DisclaimerAccepted');
 const DisclaimerVersion = require('./DisclaimerVersion');
 const Emergency = require('./Emergency');
@@ -19,6 +20,10 @@ User.hasMany(Call, { as: 'calls_as_talker', foreignKey: 'talker_id' });
 User.hasMany(Call, { as: 'calls_as_listener', foreignKey: 'listener_id' });
 Call.belongsTo(User, { as: 'talker', foreignKey: 'talker_id' });
 Call.belongsTo(User, { as: 'listener', foreignKey: 'listener_id' });
+
+// Call <-> CallPaymentIntent (1..n)
+Call.hasMany(CallPaymentIntent, { as: 'payment_intents', foreignKey: 'call_id' });
+CallPaymentIntent.belongsTo(Call, { foreignKey: 'call_id' });
 
 // User 1.n Boost
 User.hasMany(Boost, { foreignKey: 'user_id' });
@@ -76,6 +81,7 @@ module.exports = {
     Boost,
     BusinessMode,
     Call,
+    CallPaymentIntent,
     DisclaimerAccepted,
     DisclaimerVersion,
     Emergency,
