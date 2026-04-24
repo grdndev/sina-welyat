@@ -123,7 +123,19 @@ const User = sequelize.define(
         accepted_disclaimer: {
             type: DataTypes.BOOLEAN,
             defaultValue: false
-        }
+        },
+        is_online: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false,
+        },
+        magic_link_token: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
+        magic_link_expires_at: {
+            type: DataTypes.DATE,
+            allowNull: true,
+        },
     },
     {
         tableName: 'users',

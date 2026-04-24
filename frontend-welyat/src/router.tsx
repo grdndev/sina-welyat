@@ -1,7 +1,12 @@
 import { createBrowserRouter } from "react-router-dom";
 import AuthProtection from "./middlewares/AuthProtection";
 import AuthProvider from "./middlewares/Auth";
+import DisclaimerProtection from "./middlewares/DisclaimerProtection";
+import Disclaimers from "./pages/Disclaimers";
 import DashboardAdmin from "./pages/admin/Dashboard";
+import AdminSessions from "./pages/admin/Sessions";
+import AdminAnalytics from "./pages/admin/Analytics";
+import AdminSettings from "./pages/admin/Settings";
 import DashboardListener from "./pages/listener/Dashboard";
 import DashboardTalker from "./pages/talker/Dashboard";
 import Call from "./pages/talker/Call";
@@ -24,6 +29,7 @@ import Faq from "./pages/support/Faq";
 import RegisterListener from "./pages/auth/Register-listener";
 import Subscriptions from "./pages/talker/Subscriptions";
 import PayoutSetup from "./pages/listener/PayoutSetup";
+import MagicLink from "./pages/MagicLink";
 
 export const router = createBrowserRouter([
   {
@@ -43,13 +49,23 @@ export const router = createBrowserRouter([
         children: [
           { path: "/welcome", element: <Welcome /> },
           { path: "/admin", element: <DashboardAdmin /> },
+          { path: "/admin/sessions", element: <AdminSessions /> },
+          { path: "/admin/analytics", element: <AdminAnalytics /> },
+          { path: "/admin/settings", element: <AdminSettings /> },
+          { path: "/disclaimers", element: <Disclaimers /> },
           { path: "/listener", element: <DashboardListener /> },
           { path: "/listener/payout-setup", element: <PayoutSetup /> },
-          { path: "/talker", element: <DashboardTalker /> },
-          { path: "/subscriptions", element: <Subscriptions /> },
+          {
+            element: <DisclaimerProtection />,
+            children: [
+              { path: "/talker", element: <DashboardTalker /> },
+              { path: "/subscriptions", element: <Subscriptions /> },
+            ],
+          },
         ],
       },
       { path: "/call", element: <Call /> },
+      { path: "/magic/:token", element: <MagicLink /> },
       { path: "/termsOfService", element: <TermsOfService /> },
       { path: "/contact", element: <Contact /> },
       { path: "/becomeListener", element: <BecomeListener /> },

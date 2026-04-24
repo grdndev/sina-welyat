@@ -26,7 +26,7 @@ const getStatus = async (req, res, next) => {
                     available_balance: parseFloat(user.balance) || 0,
                     total_minutes: 0,
                     payout_status,
-                    is_online: false,
+                    is_online: !!user.is_online,
                     last_calls: [],
                     is_founding: !!user.is_founding,
                 },
@@ -105,4 +105,22 @@ const getPayoutStatus = async (req, res, next) => {
     }
 };
 
-module.exports = { getStatus, setupPayout, getPayoutStatus };
+/**
+ * POST /api/v1/listeners/toggle-online
+ * Toggle the listener's online/offline status
+ */
+const toggleOnline = async (req, res, next) => {
+    try {
+        const user = await User.findByPk(req.user.id);
+        if (!user) return res.status(404).json({ success: false, error: { message: 'User not found' } });
+
+        const newStatus = !user.is_online;
+        await user.update({ is_online: newStatus });
+
+        return res.json({ success: true, data: { is_online: newStatus } });
+    } catch (err) {
+        next(err);
+    }
+};
+
+module.exports = { getStatus, setupPayout, getPayoutStatus, toggleOnline };

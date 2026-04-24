@@ -7,6 +7,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import logo from '../../assets/logo.png';
 import { authApi } from '../../api/auth';
+import { callsApi } from '../../api/calls';
 import { useAuth } from '../../middlewares/Auth';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -254,6 +255,10 @@ export default function Call() {
   const [authError, setAuthError] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
 
+  // Call API state
+  const [callId, setCallId] = useState<string | null>(null);
+  const [matchError, setMatchError] = useState('');
+
   // Post-call state
   const [rating, setRating] = useState(0);
   const [tip, setTip] = useState<number | null>(null);
@@ -278,12 +283,59 @@ export default function Call() {
     return () => clearInterval(id);
   }, [phase, limitWarningSeconds]);
 
-  // Auto-advance: matching → active after ~3 s
+  // matching: initiate call then poll for active status
   useEffect(() => {
     if (phase !== 'matching') return;
-    const id = setTimeout(() => setPhase('active'), 3200);
-    return () => clearTimeout(id);
-  }, [phase]);
+    let cancelled = false;
+    let pollId: ReturnType<typeof setInterval> | null = null;
+
+    async function run() {
+      try {
+        const params: Record<string, any> = {};
+        if (filterGender !== 'any') params.gender = filterGender;
+        if (filterAge === '40+') {
+          params.age_min = 40;
+        } else if (filterAge !== 'any') {
+          const [min, max] = filterAge.split('-');
+          params.age_min = parseInt(min);
+          params.age_max = parseInt(max);
+        }
+
+        const res = await callsApi.initiate(params);
+        if (cancelled) return;
+        setCallId(res.data.call_id);
+
+        pollId = setInterval(async () => {
+          if (cancelled) return;
+          try {
+            const activeRes = await callsApi.getActive();
+            const call = activeRes?.data;
+            if (call && (call.status === 'active_free' || call.status === 'active_paid')) {
+              if (!cancelled) setPhase('active');
+            } else if (!call || call.status === 'ended' || call.status === 'cancelled') {
+              if (!cancelled) {
+                clearInterval(pollId!);
+                setMatchError('The call could not be connected. Please try again.');
+                setPhase('preauth_fail');
+              }
+            }
+          } catch { /* continue polling */ }
+        }, 2000);
+      } catch (err: any) {
+        if (!cancelled) {
+          setMatchError((err as Error).message || 'No listeners available');
+          setPhase('preauth_fail');
+        }
+      }
+    }
+
+    run();
+
+    return () => {
+      cancelled = true;
+      if (pollId) clearInterval(pollId);
+    };
+  }, [phase, filterGender, filterAge]);
 
   // Pre-auth processing mock: 1 s then check login
   useEffect(() => {
@@ -327,7 +379,10 @@ export default function Call() {
     setPhase('preauth_processing');
   }
 
-  function handleEndCall() {
+  async function handleEndCall() {
+    if (callId) {
+      try { await callsApi.end(callId); } catch { /* best effort */ }
+    }
     setPhase('ended');
   }
 
@@ -336,9 +391,12 @@ export default function Call() {
     setPhase('limit_warn');
   }
 
-  function handlePostSubmit(e: React.FormEvent) {
+  async function handlePostSubmit(e: React.FormEvent) {
     e.preventDefault();
     setPostSubmitted(true);
+    if (callId && rating > 0) {
+      try { await callsApi.rate(callId, { rating }); } catch { /* best effort */ }
+    }
     setTimeout(() => setPhase('complete'), 800);
   }
 
@@ -598,6 +656,37 @@ export default function Call() {
                 <div key={i} className="w-2 h-2 rounded-full animate-bounce" style={{ background: '#8E5CFF', animationDelay: `${i * 0.15}s` }} />
               ))}
             </div>
+          </div>
+        </Screen>
+      )}
+
+      {/* ──────────── SCREEN 3c: PREAUTH FAIL ──────────── */}
+      {phase === 'preauth_fail' && (
+        <Screen>
+          <div className="w-full max-w-sm flex flex-col items-center gap-6 text-center">
+            <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ background: 'rgba(239,68,68,0.1)', border: '2px solid rgba(239,68,68,0.3)' }}>
+              <AlertTriangle size={28} style={{ color: '#ef4444' }} />
+            </div>
+            <div>
+              <h2 className="text-xl font-extrabold text-text-primary mb-2">No listener available</h2>
+              <p className="text-sm" style={{ color: '#6F6F7A' }}>
+                {matchError || 'No listeners are available right now. Please try again in a moment.'}
+              </p>
+            </div>
+            <button
+              onClick={() => { setPhase('filters'); setMatchError(''); setCallId(null); }}
+              className="w-full py-4 rounded-2xl font-bold text-white transition hover:opacity-90"
+              style={{ background: 'linear-gradient(135deg, #7A4CFF 0%, #B78CFF 100%)', boxShadow: '0 6px 24px rgba(122,76,255,0.4)' }}
+            >
+              Try again
+            </button>
+            <button
+              onClick={() => navigate('/talker')}
+              className="text-sm font-semibold underline transition"
+              style={{ color: '#6F6F7A' }}
+            >
+              Back to dashboard
+            </button>
           </div>
         </Screen>
       )}
@@ -929,7 +1018,7 @@ export default function Call() {
 
             <div className="flex gap-3 w-full">
               <button
-                onClick={() => { setPhase('filters'); setCallSeconds(0); setRating(0); setTip(null); setEmail(''); setPostSubmitted(false); }}
+                onClick={() => { setPhase('filters'); setCallSeconds(0); setRating(0); setTip(null); setEmail(''); setPostSubmitted(false); setCallId(null); setMatchError(''); }}
                 className="flex-1 py-3 rounded-xl font-bold text-white transition hover:opacity-90"
                 style={{ background: 'linear-gradient(135deg, #7A4CFF, #B78CFF)', boxShadow: '0 4px 16px rgba(122,76,255,0.35)' }}
               >
@@ -1104,7 +1193,7 @@ export default function Call() {
 
             <div className="flex flex-col gap-3 w-full">
               <button
-                onClick={() => { setPhase('filters'); setCallSeconds(0); setRating(0); setTip(null); setEmail(''); setPostSubmitted(false); }}
+                onClick={() => { setPhase('filters'); setCallSeconds(0); setRating(0); setTip(null); setEmail(''); setPostSubmitted(false); setCallId(null); setMatchError(''); }}
                 className="w-full py-4 rounded-2xl font-bold text-white transition hover:opacity-90"
                 style={{ background: 'linear-gradient(135deg, #7A4CFF 0%, #B78CFF 100%)', boxShadow: '0 6px 24px rgba(122,76,255,0.4)' }}
               >

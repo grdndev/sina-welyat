@@ -7,7 +7,7 @@ if (process.env.NODE_ENV !== 'test') {
     cron.schedule('0 0 * * *', ScoringService.checkListeners);
     cron.schedule('0 1 * * *', ScoringService.checkTalkers);
     cron.schedule('0 2 * * *', FoundingService.checkFounding);
-    
-    // Relances à 1h et 24h
-    cron.schedule('0 * * * *', MailService.sendHourlyReminders);
+
+    cron.schedule('0 * * * *', MailService.sendAfterOneHour);
+    cron.schedule('0 9 * * *', MailService.sendAfterOneDay);
 }

@@ -35,6 +35,10 @@ app.use(cors({
 }));
 app.use(globalLimit);
 
+// Stripe webhook needs the raw body for signature verification — register before JSON parser
+const { handleStripeWebhook } = require('./api/controllers/webhookController');
+app.post('/api/v1/webhooks/stripe', express.raw({ type: 'application/json' }), handleStripeWebhook);
+
 // Body parsers
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

@@ -27,7 +27,7 @@ function toHM(m: number) {
 export default function Dashboard() {
   const navigate = useNavigate();
   const [data, setData] = useState<ListenerData | null>(null);
-  const [goingOnline, setGoingOnline] = useState(false);
+  const [togglingOnline, setTogglingOnline] = useState(false);
   const [dismissedSetupOverlay, setDismissedSetupOverlay] = useState(false);
   const [showReadyScreen, setShowReadyScreen] = useState(false);
 
@@ -83,8 +83,20 @@ export default function Dashboard() {
   const isSetupPending = data.payout_status === 'pending';
   const showSetupOverlay = !dismissedSetupOverlay && !isSetupDone;
 
+  async function handleToggleOnline() {
+    if (togglingOnline || !data) return;
+    setTogglingOnline(true);
+    try {
+      const res = await listenersApi.toggleOnline();
+      setData((prev) => prev ? { ...prev, is_online: res.data.is_online } : prev);
+    } catch {
+      // ignore
+    } finally {
+      setTogglingOnline(false);
+    }
+  }
+
   function handleGoOnline() {
-    setGoingOnline(true);
     setShowReadyScreen(false);
     try {
       window.localStorage.setItem('listener_ready_shown', '1');
@@ -94,6 +106,7 @@ export default function Dashboard() {
     } catch {
       // ignore
     }
+    handleToggleOnline();
   }
 
   return (
@@ -282,28 +295,35 @@ export default function Dashboard() {
 
               <div className="flex flex-col items-center gap-3 py-4">
                 <button
-                  disabled={!isSetupDone || goingOnline}
-                  onClick={() => setGoingOnline(true)}
+                  disabled={!isSetupDone || togglingOnline}
+                  onClick={handleToggleOnline}
                   className="relative w-36 h-36 rounded-full flex items-center justify-center transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={isSetupDone ? {
-                    background: 'linear-gradient(135deg, #7A4CFF 0%, #B78CFF 100%)',
-                    boxShadow: '0 8px 30px rgba(122, 76, 255, 0.45)',
-                  } : {
+                  style={!isSetupDone ? {
                     background: 'rgba(142,92,255,0.15)',
                     border: '2px dashed rgba(142,92,255,0.3)',
+                  } : data.is_online ? {
+                    background: 'linear-gradient(135deg, #22c55e 0%, #4ade80 100%)',
+                    boxShadow: '0 8px 30px rgba(34,197,94,0.45)',
+                  } : {
+                    background: 'linear-gradient(135deg, #7A4CFF 0%, #B78CFF 100%)',
+                    boxShadow: '0 8px 30px rgba(122, 76, 255, 0.45)',
                   }}
                 >
-                  {isSetupDone ? (
-                    <Phone size={52} color="white" />
-                  ) : (
+                  {!isSetupDone ? (
                     <Lock size={36} style={{ color: '#8e5cff' }} />
+                  ) : (
+                    <Phone size={52} color="white" />
                   )}
                 </button>
                 <div className="text-center">
-                  <div className="font-bold text-lg text-text-primary">GO ONLINE</div>
-                  {isSetupDone
-                    ? <div className="text-sm text-text-secondary mt-1">Start listening to callers instantly</div>
-                    : <div className="text-sm text-text-secondary mt-1">Complete payout setup to unlock</div>
+                  <div className="font-bold text-lg text-text-primary">
+                    {data.is_online ? 'GO OFFLINE' : 'GO ONLINE'}
+                  </div>
+                  {!isSetupDone
+                    ? <div className="text-sm text-text-secondary mt-1">Complete payout setup to unlock</div>
+                    : data.is_online
+                    ? <div className="text-sm mt-1" style={{ color: '#4ade80' }}>You are online — callers can reach you</div>
+                    : <div className="text-sm text-text-secondary mt-1">Start listening to callers instantly</div>
                   }
                 </div>
               </div>

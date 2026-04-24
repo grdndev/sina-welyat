@@ -49,7 +49,10 @@ const handleTwilioStatus = async (req, res, next) => {
             case 'canceled':
                 // L'appel s'est terminé
                 if (call.status !== 'ended' && call.status !== 'cancelled') {
-                    await fsm.end(`Twilio status: ${CallStatus}`);
+                    const terminate = call.status === 'waiting'
+                        ? fsm.cancel(`Twilio status: ${CallStatus}`)
+                        : fsm.end(`Twilio status: ${CallStatus}`);
+                    await terminate;
 
                     // If Talker is in TRIAL MODE, increment seconds_used
                     if (call.talker_id) {

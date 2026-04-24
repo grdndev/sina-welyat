@@ -7,6 +7,7 @@ type Context = {
     login?: (user: User, tokens: any) => void;
     logout?: () => void;
     setSession?: (user: User, tokens: any) => void;
+    acceptDisclaimer?: (newToken: string) => void;
 }
 
 type User = {
@@ -14,6 +15,7 @@ type User = {
     name: string;
     email: string;
     role: string;
+    accepted_disclaimer?: boolean;
 }
 
 export const AuthContext = createContext<Context>({});
@@ -68,10 +70,18 @@ function provideAuth() {
         navigate("/login");
     }
 
+    function acceptDisclaimer(newToken: string) {
+        const updatedTokens = { ...(tokens ?? {}), token: newToken };
+        const updatedUser = { ...(user ?? {}), accepted_disclaimer: true };
+        dataToLocalStorage("tokens", updatedTokens, setTokens);
+        dataToLocalStorage("user", updatedUser, setUser);
+    }
+
     return {
         login,
         logout,
         setSession,
+        acceptDisclaimer,
         user,
         tokens
     };

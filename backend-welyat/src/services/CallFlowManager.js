@@ -1,5 +1,4 @@
 const logger = require('../config/logger');
-const BillingService = require('./BillingService');
 const TwilioService = require('./TwilioService');
 const CallStateMachine = require('./CallStateMachine');
 
@@ -26,6 +25,7 @@ class CallFlowManager {
         logger.info(`CallFlowManager: Starting lifecycle for call ${callId} (${freeMinutes}m free)`);
 
         // 1. T=0: Micro-fee Hook-up ($0.20)
+        const BillingService = require('./BillingService');
         await BillingService.chargeBridgeFee(callId, 'hook_up');
 
         // 2. T = (Free - 2)m: Audio Alert (TTS English)

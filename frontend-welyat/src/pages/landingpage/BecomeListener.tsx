@@ -90,13 +90,13 @@ export default function BecomeListener() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
               <h2 className="text-text-primary font-bold text-xl">Earnings</h2>
-              <p className="mt-1 flex items-center gap-2 text-text-secondary text-sm">
+              <div className="mt-1 flex items-center gap-2 text-text-secondary text-sm">
                 <IconBox>
                   <CircleDollarSign color="#8e5cff" size={16} />
                 </IconBox>
                 <strong className="text-text-primary">$0.22 per minute</strong>
                 <span>(active call only)</span>
-              </p>
+              </div>
             </div>
             <div className="flex gap-4 text-sm font-medium text-text-secondary">
               <span className="flex items-center gap-2">

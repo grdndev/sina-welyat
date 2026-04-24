@@ -5,7 +5,7 @@ const SubscriptionService = require("../../services/SubscriptionService");
 const getCurrentSubscription = async (req, res) => {
     try {
         const userId = req.user.id;
-        const subscription = await SubscriptionService.getCurrentSubscription(userId);
+        const subscription = await SubscriptionService.getUserSubscription(userId);
 
         if (!subscription) {
             return res.status(404).json({ message: 'No active subscription found' });

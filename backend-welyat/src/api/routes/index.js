@@ -35,12 +35,13 @@ router.use(authenticateToken);
 router.use('/api/v1/admin', requireRole('admin'), adminRoutes);
 router.use('/api/v1/disclaimer', disclaimerRoutes);
 
+router.use('/api/v1/listeners', listenerRoutes);
+
 router.use(requireDisclaimer);
-router.use('/api/v1/calls', highLimit, callRoutes);
+router.use('/api/v1/calls', callRoutes);
 router.use('/api/v1/emergency', emergencyRoutes);
 router.use('/api/v1/payouts', payoutRoutes);
 router.use('/api/v1/subscriptions', subscriptionRoutes);
-router.use('/api/v1/listeners', listenerRoutes);
 router.use('/api/v1/users', usersRoutes);
 
 module.exports = router;

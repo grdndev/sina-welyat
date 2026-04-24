@@ -41,4 +41,9 @@ router.post('/cloud/execute', adminController.executeRedistribution);
  */
 router.post('/users/:id/promote-founding', adminController.promoteUser);
 
+router.get('/sessions', adminController.getSessions);
+router.get('/analytics', adminController.getAnalytics);
+router.get('/users', adminController.getUsers);
+router.patch('/business-modes/:id', adminController.updateBusinessMode);
+
 module.exports = router;

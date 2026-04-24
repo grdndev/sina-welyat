@@ -4,6 +4,165 @@ const { Op } = require('sequelize');
 const { User, BusinessMode, Call, Transaction } = require("../../models");
 const CloudXPService = require("../../services/CloudXPService");
 
+const getSessions = async (req, res, next) => {
+    try {
+        const { status, limit = 20, offset = 0, from, to } = req.query;
+        const where = {};
+        if (status) where.status = status;
+        if (from || to) {
+            where.created_at = {};
+            if (from) where.created_at[Op.gte] = new Date(from);
+            if (to) where.created_at[Op.lte] = new Date(to);
+        }
+
+        const calls = await Call.findAndCountAll({
+            where,
+            include: [
+                { model: User, as: 'talker', attributes: ['id', 'email', 'firstname', 'lastname'] },
+                { model: User, as: 'listener', attributes: ['id', 'email', 'firstname', 'lastname'] },
+                { model: BusinessMode, attributes: ['mode_name'] },
+            ],
+            order: [['created_at', 'DESC']],
+            limit: parseInt(limit),
+            offset: parseInt(offset),
+        });
+
+        res.json({
+            success: true,
+            data: calls.rows,
+            pagination: { total: calls.count, limit: parseInt(limit), offset: parseInt(offset) },
+        });
+    } catch (error) {
+        logger.error(`Admin sessions error: ${error.message}`);
+        next(error);
+    }
+};
+
+const getAnalytics = async (req, res, next) => {
+    try {
+        const sequelize = Call.sequelize;
+        const now = new Date();
+        const thirtyDaysAgo = new Date(now);
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+        const [totalUsers, totalCalls, activeListeners, activeTalkers] = await Promise.all([
+            User.count({ where: { role: { [Op.ne]: 'admin' } } }),
+            Call.count(),
+            User.count({ where: { role: ['listener', 'both'], is_active: true } }),
+            User.count({ where: { role: ['talker', 'both'], is_active: true } }),
+        ]);
+
+        const callRows = await Call.findAll({
+            attributes: [
+                [sequelize.fn('DATE', sequelize.col('created_at')), 'date'],
+                [sequelize.fn('COUNT', sequelize.col('id')), 'count'],
+                [sequelize.fn('SUM', sequelize.col('duration_paid_seconds')), 'paid_seconds'],
+            ],
+            where: { created_at: { [Op.gte]: thirtyDaysAgo } },
+            group: [sequelize.fn('DATE', sequelize.col('created_at'))],
+            order: [[sequelize.fn('DATE', sequelize.col('created_at')), 'ASC']],
+            raw: true,
+        });
+
+        const revenueRows = await Transaction.findAll({
+            attributes: [
+                [sequelize.fn('DATE', sequelize.col('created_at')), 'date'],
+                [sequelize.fn('SUM', sequelize.col('amount')), 'revenue'],
+            ],
+            where: {
+                type: 'charge',
+                status: 'completed',
+                created_at: { [Op.gte]: thirtyDaysAgo },
+            },
+            group: [sequelize.fn('DATE', sequelize.col('created_at'))],
+            order: [[sequelize.fn('DATE', sequelize.col('created_at')), 'ASC']],
+            raw: true,
+        });
+
+        res.json({
+            success: true,
+            data: {
+                totalUsers,
+                totalCalls,
+                activeListeners,
+                activeTalkers,
+                callsPerDay: callRows.map(r => ({
+                    date: r.date,
+                    count: Number(r.count),
+                    paidMinutes: Math.floor(Number(r.paid_seconds || 0) / 60),
+                })),
+                revenuePerDay: revenueRows.map(r => ({
+                    date: r.date,
+                    revenue: Number(r.revenue || 0),
+                })),
+            },
+        });
+    } catch (error) {
+        logger.error(`Admin analytics error: ${error.message}`);
+        next(error);
+    }
+};
+
+const getUsers = async (req, res, next) => {
+    try {
+        const { search, role, limit = 20, offset = 0 } = req.query;
+        const where = {};
+        if (role) where.role = role;
+        if (search) {
+            where[Op.or] = [
+                { email: { [Op.iLike]: `%${search}%` } },
+                { firstname: { [Op.iLike]: `%${search}%` } },
+                { lastname: { [Op.iLike]: `%${search}%` } },
+            ];
+        }
+
+        const users = await User.findAndCountAll({
+            where,
+            attributes: ['id', 'email', 'firstname', 'lastname', 'role', 'is_founding', 'founding_end_date', 'is_active', 'total_xp', 'reputation_score', 'created_at'],
+            order: [['created_at', 'DESC']],
+            limit: parseInt(limit),
+            offset: parseInt(offset),
+        });
+
+        res.json({
+            success: true,
+            data: users.rows,
+            pagination: { total: users.count, limit: parseInt(limit), offset: parseInt(offset) },
+        });
+    } catch (error) {
+        logger.error(`Admin users error: ${error.message}`);
+        next(error);
+    }
+};
+
+const updateBusinessMode = [
+    body('free_duration_minutes').optional().isInt({ min: 0 }),
+    body('price_per_minute_client').optional().isNumeric(),
+    body('earn_per_minute_listener').optional().isNumeric(),
+    body('xp_per_minutes').optional().isInt({ min: 0 }),
+    body('timeout_matching').optional().isInt({ min: 1 }),
+    async (req, res, next) => {
+        try {
+            const { id } = req.params;
+            const mode = await BusinessMode.findByPk(id);
+            if (!mode) return res.status(404).json({ success: false, error: { message: 'Business mode not found' } });
+
+            const allowed = ['free_duration_minutes', 'price_per_minute_client', 'earn_per_minute_listener', 'xp_per_minutes', 'timeout_matching'];
+            const updates = {};
+            for (const f of allowed) {
+                if (req.body[f] !== undefined) updates[f] = req.body[f];
+            }
+
+            await mode.update(updates);
+            logger.info(`Business mode ${mode.mode_name} (id: ${id}) updated by admin ${req.user.id}`);
+            res.json({ success: true, data: { mode } });
+        } catch (error) {
+            logger.error(`Admin update mode error: ${error.message}`);
+            next(error);
+        }
+    },
+];
+
 const cloudStatus = async (req, res, next) => {
     try {
         const { total_payout, total_charged } = await CloudXPService.calculateCurrentMargin();
@@ -230,4 +389,8 @@ module.exports = {
     getBusinessModes,
     activateBusinessMode,
     getMetrics,
+    getSessions,
+    getAnalytics,
+    getUsers,
+    updateBusinessMode,
 }

@@ -88,7 +88,7 @@ const initiateCall = async (req, res, next) => {
         var retry = 0;
 
         while (20 / businessMode.timeout_matching > retry) {
-            listener = await MatchingService.findMatch(talkerId, businessMode.id, { gender, age_min, age_max }, retry++);
+            listener = await MatchingService.findMatch(talkerId, businessMode, { gender, age_min, age_max }, retry++);
             if (listener) break;
 
             await new Promise(resolve => setTimeout(resolve, businessMode.timeout_matching * 1000));
@@ -103,11 +103,9 @@ const initiateCall = async (req, res, next) => {
 
         // 7. Initier l'appel Twilio
 
-        const twilioCall = { sid: `FAKE_SID_${Date.now()}` }; // Placeholder pour développement
-        // Dans une implémentation réelle, on appellerait Twilio ici
-        // const callbackBaseUrl = process.env.BASE_URL || `http://${process.env.HOST || 'localhost'}:${process.env.PORT || 3000}`;
-        // const statusCallbackUrl = `${callbackBaseUrl}/api/v1/webhooks/twilio/status`;
-        // const twilioCall = await TwilioService.initiateCall(listener.phone_number, user.phone_number, statusCallbackUrl);
+        const callbackBaseUrl = process.env.BASE_URL || `http://${process.env.HOST || 'localhost'}:${process.env.PORT || 3000}`;
+        const statusCallbackUrl = `${callbackBaseUrl}/api/v1/webhooks/twilio/status`;
+        const twilioCall = await TwilioService.initiateCall(listener.phone, user.phone, statusCallbackUrl);
 
         const call = await Call.create({
             talker_id: talkerId,
@@ -163,9 +161,19 @@ const getActiveCall = async (req, res, next) => {
             include: [
                 { model: User, as: 'talker', attributes: ['id', 'email', 'reputation_score'] },
                 { model: User, as: 'listener', attributes: ['id', 'email', 'reputation_score'] },
-                { model: BusinessMode }
+                { model: BusinessMode, as: 'business_mode' }
             ]
         });
+
+        // Auto-cancel calls stuck in waiting for more than 60s (Twilio webhook not received)
+        if (call && call.status === 'waiting') {
+            const age = Date.now() - new Date(call.created_at).getTime();
+            if (age > 60000) {
+                const fsm = new CallStateMachine(call);
+                await fsm.cancel('Timed out waiting for Twilio');
+                return res.status(200).json({ success: true, data: null });
+            }
+        }
 
         res.status(200).json({
             success: true,
@@ -191,7 +199,7 @@ const getMyCalls = async (req, res, next) => {
             include: [
                 { model: User, as: 'talker', attributes: ['id', 'email'] },
                 { model: User, as: 'listener', attributes: ['id', 'email'] },
-                { model: BusinessMode }
+                { model: BusinessMode, as: 'business_mode' }
             ],
             order: [['created_at', 'DESC']],
             limit: parseInt(limit),
@@ -226,7 +234,7 @@ const getCallDetails = async (req, res, next) => {
             include: [
                 { model: User, as: 'talker', attributes: ['id', 'email', 'reputation_score'] },
                 { model: User, as: 'listener', attributes: ['id', 'email', 'reputation_score'] },
-                { model: BusinessMode },
+                { model: BusinessMode, as: 'business_mode' },
                 { model: Transaction, attributes: ['id', 'type', 'amount', 'status', 'created_at'] }
             ]
         });

@@ -17,7 +17,7 @@ export default function PayoutSetup() {
       const { url } = res.data;
       window.location.href = url;
     } catch (e: any) {
-      setError(e.response?.data?.error?.message ?? 'An error occurred. Please try again.');
+      setError(e.message ?? 'An error occurred. Please try again.');
     } finally {
       setLoading(false);
     }

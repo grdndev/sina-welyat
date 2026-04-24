@@ -65,10 +65,10 @@ export default function RegisterListener() {
     }
     setLoading(true);
     try {
-      // Backend is phone-based auth; we store email in the firstname field for now (no backend change)
       const res = await authApi.registerListener({
-        firstname: formData.email,
+        firstname: formData.display_name,
         lastname: '',
+        email: formData.email,
         phone: formData.phone,
         age: formData.age,
         gender: formData.gender,

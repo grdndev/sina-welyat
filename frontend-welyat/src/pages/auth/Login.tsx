@@ -32,6 +32,7 @@ export default function Login() {
                     name: [u.firstname, u.lastname].filter(Boolean).join(' ') || u.phone,
                     email: u.email || u.phone,
                     role: u.role,
+                    accepted_disclaimer: u.accepted_disclaimer,
                 },
                 { token: res.data.token }
             );

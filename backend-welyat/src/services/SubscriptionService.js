@@ -92,4 +92,4 @@ class SubscriptionService {
     }
 }
 
-module.exports = SubscriptionService;
+module.exports = new SubscriptionService();

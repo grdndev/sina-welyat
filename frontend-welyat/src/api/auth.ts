@@ -32,6 +32,7 @@ export const authApi = {
     registerListener: (formData: {
         firstname: string;
         lastname: string;
+        email: string;
         phone: string;
         age: string;
         gender: string;
@@ -43,6 +44,7 @@ export const authApi = {
         api.post<AuthResponse>('/auth/register', {
             firstname: formData.firstname,
             lastname: formData.lastname,
+            email: formData.email,
             phone: formData.phone,
             age: formData.age,
             gender: formData.gender,
@@ -54,4 +56,7 @@ export const authApi = {
         }),
 
     me: () => api.get<{ success: boolean; data: { user: AuthResponse['data']['user'] } }>('/auth/me'),
+
+    verifyMagicLink: (token: string) =>
+        api.get<AuthResponse>(`/auth/magic/${token}`),
 };

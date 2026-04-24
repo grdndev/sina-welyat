@@ -2,6 +2,10 @@ const User = require('../../models/User');
 const { body, validationResult } = require('express-validator');
 const logger = require('../../config/logger');
 const { generateToken } = require('../../utils');
+const { Op } = require('sequelize');
+const StripeService = require('../../services/StripeService');
+
+const stripeService = new StripeService();
 
 /**
  * @route   POST /api/v1/auth/register
@@ -34,7 +38,8 @@ const register = [
                 });
             }
 
-            const { phone, password, email, role, firstname, lastname, age, gender } = req.body;
+            const { password, email, role, firstname, lastname, age, gender } = req.body;
+            const phone = req.body.phone?.replace(/\s+/g, '');
 
             // Check if phone already registered
             const existingPhone = await User.findOne({ where: { phone } });
@@ -69,6 +74,15 @@ const register = [
                 gender: gender || null,
                 is_active: role === 'listener' ? false : true, // listeners need admin validation
             });
+
+            if (role === 'talker' || role === 'both') {
+                try {
+                    const customer = await stripeService.createCustomer(user.id, email || null);
+                    await user.update({ stripe_customer_id: customer.id });
+                } catch (stripeError) {
+                    logger.error(`Failed to create Stripe customer for user ${user.id}: ${stripeError.message}`);
+                }
+            }
 
             const token = generateToken(user);
 
@@ -108,7 +122,8 @@ const login = [
                 });
             }
 
-            const { phone, password } = req.body;
+            const { password } = req.body;
+            const phone = req.body.phone?.replace(/\s+/g, '');
 
             const user = await User.findOne({ where: { phone } });
             if (!user) {
@@ -126,10 +141,11 @@ const login = [
                 });
             }
 
-            if (!user.is_active) {
+            const isListener = user.role === 'listener' || user.role === 'both';
+            if (!user.is_active && !isListener) {
                 return res.status(403).json({
                     success: false,
-                    error: { message: 'Account is pending validation or deactivated' },
+                    error: { message: 'Account is deactivated' },
                 });
             }
 
@@ -189,9 +205,48 @@ const logout = async (req, res) => {
     });
 };
 
+/**
+ * @route   GET /api/v1/auth/magic/:token
+ * @desc    Authenticate via magic link token
+ * @access  Public
+ */
+const verifyMagicLink = async (req, res, next) => {
+    try {
+        const { token } = req.params;
+
+        const user = await User.findOne({
+            where: {
+                magic_link_token: token,
+                magic_link_expires_at: { [Op.gt]: new Date() },
+            },
+        });
+
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                error: { message: 'Invalid or expired magic link' },
+            });
+        }
+
+        await user.update({ magic_link_token: null, magic_link_expires_at: null });
+
+        const jwt = generateToken(user);
+
+        logger.info(`User authenticated via magic link: ${user.phone}`);
+
+        res.status(200).json({
+            success: true,
+            data: { user: user.toJSON(), token: jwt },
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     register,
     login,
     getMe,
     logout,
+    verifyMagicLink,
 };

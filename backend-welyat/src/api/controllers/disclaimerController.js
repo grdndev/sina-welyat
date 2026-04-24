@@ -20,7 +20,7 @@ const getDisclaimer = async (req, res, next) => {
         }
 
         res.status(200).json({
-            data: { disclaimer: disclaimer.content }
+            data: { version: disclaimer.version, content: disclaimer.content }
         });
     } catch (error) {
         logger.error(`get disclaimer error : ${error.message}`);

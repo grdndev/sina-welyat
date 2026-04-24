@@ -32,4 +32,11 @@ router.get('/me', authenticateToken, authController.getMe);
  */
 router.post('/logout', authenticateToken, authController.logout);
 
+/**
+ * @route   GET /api/v1/auth/magic/:token
+ * @desc    Authenticate via magic link
+ * @access  Public
+ */
+router.get('/magic/:token', authController.verifyMagicLink);
+
 module.exports = router;

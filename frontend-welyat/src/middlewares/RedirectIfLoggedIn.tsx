@@ -7,16 +7,15 @@ export default function RedirectIfLoggedIn() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (!user) {
-
-        } else if (user.role === "admin") {
+        if (!user) return;
+        if (user.role === "admin") {
             navigate("/admin");
         } else if (user.role === "listener") {
             navigate("/listener");
         } else if (user.role === "talker" || user.role === "both") {
             navigate("/talker");
         }
-    })
+    }, [user, navigate])
 
     return <Outlet />
 }

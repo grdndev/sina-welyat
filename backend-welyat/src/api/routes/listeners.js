@@ -24,4 +24,11 @@ router.post('/setup-payout', listenerController.setupPayout);
  */
 router.get('/payout-status', listenerController.getPayoutStatus);
 
+/**
+ * @route   POST /api/v1/listeners/toggle-online
+ * @desc    Toggle listener online/offline status
+ * @access  Private (listener)
+ */
+router.post('/toggle-online', listenerController.toggleOnline);
+
 module.exports = router;

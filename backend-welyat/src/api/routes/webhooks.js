@@ -18,6 +18,6 @@ router.post('/twilio/dtmf', webhookController.handleTwilioDTMF);
  * @desc    Handle Stripe events (account.updated, etc.)
  * @access  Public (Stripe webhook — raw body required)
  */
-router.post('/stripe', express.raw({ type: 'application/json' }), webhookController.handleStripeWebhook);
+router.post('/stripe', webhookController.handleStripeWebhook);
 
 module.exports = router;

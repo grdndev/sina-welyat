@@ -17,7 +17,7 @@ export default function AuthProtection() {
         setLoading(false);
     }, [user, navigate]);
 
-    if (loading) {
+    if (loading || !user) {
         return <Loading />;
     }
 

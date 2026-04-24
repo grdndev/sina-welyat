@@ -25,8 +25,9 @@ class MatchingService {
             let whereClause = {
                 role: { [Op.in]: ['listener', 'both'] },
                 is_active: true,
+                is_online: true,
                 toxic_flag: false,
-                id: { [Op.ne]: talkerId } // On ne peut pas s'écouter soi-même
+                id: { [Op.ne]: talkerId }
             };
 
             if (subscription && subscription.Subscription) {
@@ -82,7 +83,7 @@ class MatchingService {
             // Check if user paid more than 5$ total
             const totalPaid = await Transaction.sum('amount', {
                 where: {
-                    talker_id: talkerId,
+                    user_id: talkerId,
                     type: 'charge',
                     status: 'completed',
                 },

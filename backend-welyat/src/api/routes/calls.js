@@ -1,14 +1,22 @@
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 const callController = require('../controllers/callController');
 
 const router = express.Router();
+
+const initiateLimit = rateLimit({
+    legacyHeaders: false,
+    windowMs: 1 * 60 * 1000,
+    max: 5,
+    message: 'Too many requests from this IP'
+});
 
 /**
  * @route   POST /api/v1/calls/initiate
  * @desc    Initiate a new call matching process
  * @access  Private (Parlant)
  */
-router.post('/initiate', callController.initiateCall);
+router.post('/initiate', initiateLimit, callController.initiateCall);
 
 /**
  * @route   GET /api/v1/calls/active

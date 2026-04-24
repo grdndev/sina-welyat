@@ -33,7 +33,7 @@ async function request<T = any>(path: string, options: RequestInit = {}): Promis
 
   const res = await fetch(`${BASE_URL}${path}`, { ...options, headers });
 
-  if (res.status === 401 || res.status === 403) {
+  if (res.status === 401) {
     clearAuthStorage();
   }
 
@@ -54,7 +54,7 @@ async function requestForm<T = any>(path: string, body: FormData): Promise<T> {
     body,
   });
 
-  if (res.status === 401 || res.status === 403) {
+  if (res.status === 401) {
     clearAuthStorage();
   }
 
@@ -70,4 +70,6 @@ export const api = {
   post: <T = any>(path: string, body: unknown) => request<T>(path, { method: "POST", body: JSON.stringify(body) }),
   postForm: <T = any>(path: string, body: FormData) => requestForm<T>(path, body),
   patch: <T = any>(path: string, body: unknown) => request<T>(path, { method: "PATCH", body: JSON.stringify(body) }),
+  put: <T = any>(path: string, body: unknown) => request<T>(path, { method: "PUT", body: JSON.stringify(body) }),
+  delete: <T = any>(path: string) => request<T>(path, { method: "DELETE" }),
 };
