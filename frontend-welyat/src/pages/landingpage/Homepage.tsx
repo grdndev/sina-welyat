@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { useBusinessMode } from '../../hooks/useBusinessMode';
 import {
   ArrowRight,
   CreditCard,
@@ -17,7 +18,6 @@ import {
   Heart,
   Sparkles,
   Users,
-  User,
   Zap
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -30,16 +30,12 @@ import backgroubndMobile from '../../assets/bg/mb_homePage.png';
 
 export default function HomePage() {
   const [talk, setTalk] = useState<boolean>(false);
+  const info = useBusinessMode();
 
   // Animation variants
   const containerVars = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.5, staggerChildren: 0.1 } },
-  };
-
-  const cardVars = {
-    hidden: { opacity: 0, scale: 0.95 },
-    visible: { opacity: 1, scale: 1 },
   };
 
   return (
@@ -128,7 +124,7 @@ export default function HomePage() {
                   icon={<Clock className="text-[#F8CD8B]" size={24} />}
                   title="Your Free Time"
                   items={[
-                    { text: '15 minutes free to talk', highlight: true },
+                    { text: `${info?.mode.free_duration_minutes ?? 15} minutes free to talk`, highlight: true },
                     { text: 'First 3 calls < 2 min are free' },
                     { text: 'Stay in total control' },
                   ]}
@@ -175,7 +171,7 @@ export default function HomePage() {
                       </h3>
                     </div>
                     <span className="bg-[#F8CD8B] text-black px-4 py-1 rounded-full font-black text-sm">
-                      15 MINUTES FREE
+                      {info?.mode.free_duration_minutes ?? 15} MINUTES FREE
                     </span>
                   </div>
                   <div className="grid md:grid-cols-2 gap-4 text-white/80">
@@ -199,7 +195,7 @@ export default function HomePage() {
                     </div>
                     <div className="text-center py-6 bg-white/5 rounded-2xl">
                       <div className="text-3xl font-black text-white">
-                        $0.33<span className="text-sm font-normal text-white/50">/min</span>
+                        ${Number(info?.mode.price_per_minute_client ?? 0.33).toFixed(2)}<span className="text-sm font-normal text-white/50">/min</span>
                       </div>
                       <div className="text-xs text-white/40 mt-1">Applied after free minutes</div>
                     </div>
@@ -216,7 +212,7 @@ export default function HomePage() {
                     <div className="text-center py-6 bg-white/5 rounded-2xl">
                       <div className="text-xs text-white/40 mt-1">Fixed Fee</div>
                       <div className="text-3xl font-black text-white">
-                        $0.20<span className="text-sm font-normal text-white/50"></span>
+                        ${Number(info?.totalTechFees ?? 0.20).toFixed(2)}
                       </div>
                     </div>
                   </ul>

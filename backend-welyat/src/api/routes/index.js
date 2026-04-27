@@ -1,11 +1,12 @@
 const { requireRole, authenticateToken, requireDisclaimer } = require('../../middleware/auth');
+const express = require('express');
+const rateLimit = require('express-rate-limit');
 const adminRoutes = require('./admin');
 const authRoutes = require('./auth');
 const callRoutes = require('./calls');
 const disclaimerRoutes = require('./disclaimer');
 const emergencyRoutes = require('./emergency');
-const express = require('express');
-const rateLimit = require('express-rate-limit');
+const infoRoutes = require('./info');
 const payoutRoutes = require('./payouts');
 const subscriptionRoutes = require('./subscriptions');
 const listenerRoutes = require('./listeners');
@@ -30,6 +31,7 @@ const router = express.Router();
 
 router.use('/api/v1/auth', lowLimit, authRoutes);
 router.use('/api/v1/webhooks', webhookRoutes);
+router.use('/api/v1/info', infoRoutes);
 
 router.use(authenticateToken);
 router.use('/api/v1/admin', requireRole('admin'), adminRoutes);

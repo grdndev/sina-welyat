@@ -3,6 +3,7 @@ import type { PropsWithChildren } from 'react';
 import { Link } from 'react-router-dom';
 import { X, Heart, Clock, Shield } from 'lucide-react';
 import logo from '../assets/logo.png';
+import { useBusinessMode } from '../hooks/useBusinessMode';
 
 interface LayoutProps extends PropsWithChildren {
   children?: React.ReactNode;
@@ -19,6 +20,7 @@ export default function Layout({
 }: LayoutProps) {
   const [isMobile, setIsMobile] = useState(false);
   const [showHowItWorks, setShowHowItWorks] = useState(false);
+  const info = useBusinessMode();
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth <= 640);
@@ -178,16 +180,16 @@ export default function Layout({
               <div className="text-xs font-bold uppercase tracking-widest text-white/40 mb-3">Pricing</div>
               <div className="flex flex-col gap-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-white/70">15 minutes free</span>
+                  <span className="text-white/70">{info?.mode.free_duration_minutes ?? 15} minutes free</span>
                   <span className="font-bold text-white">$0</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-white/70">After free time</span>
-                  <span className="font-bold text-white">$0.33 / min</span>
+                  <span className="font-bold text-white">${Number(info?.mode.price_per_minute_client ?? 0.33).toFixed(2)} / min</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-white/70">Service fee</span>
-                  <span className="font-bold text-white">$0.20</span>
+                  <span className="font-bold text-white">${Number(info?.totalTechFees ?? 0.20).toFixed(2)}</span>
                 </div>
               </div>
             </div>

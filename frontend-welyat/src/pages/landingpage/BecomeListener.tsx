@@ -1,5 +1,6 @@
 import Layout from '../../components/Layout';
 import imgCall from '../../assets/img/becomeListener.jpg';
+import { useBusinessMode } from '../../hooks/useBusinessMode';
 import Button from '../../components/Button';
 import { router } from '../../router';
 import {
@@ -39,6 +40,14 @@ const IconBox = ({
 );
 
 export default function BecomeListener() {
+  const info = useBusinessMode();
+  const earnPerMin = Number(info?.mode.earn_per_minute_listener ?? 0.22);
+  const earningCards = [
+    { hours: '2h', label: '/day', earn: `$${Math.floor(earnPerMin * 60 * 2)}`, period: '/day' },
+    { hours: '4h', label: '/day', earn: `$${(earnPerMin * 60 * 4 * 30).toLocaleString('en-US', { maximumFractionDigits: 0 })}`, period: '/month' },
+    { hours: '6h', label: '/day', earn: `$${(earnPerMin * 60 * 6 * 30).toLocaleString('en-US', { maximumFractionDigits: 0 })}`, period: '/month' },
+  ];
+
   return (
     <Layout>
       <div className="max-w-6xl mx-auto px-4 py-8 flex flex-col gap-16">
@@ -94,7 +103,7 @@ export default function BecomeListener() {
                 <IconBox>
                   <CircleDollarSign color="#8e5cff" size={16} />
                 </IconBox>
-                <strong className="text-text-primary">$0.22 per minute</strong>
+                <strong className="text-text-primary">${earnPerMin.toFixed(2)} per minute</strong>
                 <span>(active call only)</span>
               </div>
             </div>
@@ -116,11 +125,7 @@ export default function BecomeListener() {
 
           {/* Earning cards */}
           <div className="grid grid-cols-3 gap-4">
-            {[
-              { hours: '2h', label: '/day', earn: '$26', period: '/day' },
-              { hours: '4h', label: '/day', earn: '$1,584', period: '/month' },
-              { hours: '6h', label: '/day', earn: '$2,376', period: '/month' },
-            ].map(({ hours, label, earn, period }) => (
+            {earningCards.map(({ hours, label, earn, period }) => (
               <div
                 key={hours}
                 className="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl border border-white/20 shadow-md"
