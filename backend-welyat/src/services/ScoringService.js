@@ -20,8 +20,13 @@ class ScoringService {
                 col: 'from_user_id'
             });
 
+            const latestRating = await Rating.findOne({
+                where: { to_user_id: talkerId },
+                order: [['created_at', 'DESC']]
+            });
+
             // If 3 or more bad ratings in the past 14 days AND the newest rating is bad
-            if (lowRatings >= 3 && latestRating <= 2) {
+            if (lowRatings >= 3 && latestRating && latestRating.score <= 2) {
                 if (!talker.toxic_flag) {
                     logger.warn(`ScoringService: User ${talkerId} flagged as TOXIC.`);
 
@@ -85,21 +90,25 @@ class ScoringService {
                         started_at: {[Op.gte]: listener.low_reputation_since}
                     }
                 });
-                const duration = calls.reduce((sum, c) => {sum + c.duration_free_seconds + c.duration_paid_seconds}, 0);
+                const duration = calls.reduce((sum, c) => sum + c.duration_free_seconds + c.duration_paid_seconds, 0);
 
                 if (ratings == 0 && duration > 10 * 60 * 60) {
                     listener.low_reputation_flag = false;
                 }
 
-                await Reputation.update({
-                    duration_listened_seconds: duration,
-                    status: listener.low_reputation_flag ? 'in_progress' : 'completed',
-                    no_bad_ratings: !ratings,
-                    where: {
-                        user_id: listener.id,
-                        status: 'in_progress'
+                await Reputation.update(
+                    {
+                        duration_listened_seconds: duration,
+                        status: listener.low_reputation_flag ? 'in_progress' : 'completed',
+                        no_bad_ratings: !ratings,
+                    },
+                    {
+                        where: {
+                            user_id: listener.id,
+                            status: 'in_progress'
+                        }
                     }
-                });
+                );
             } else {
                 const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
                 const ratings = await Rating.findAll({

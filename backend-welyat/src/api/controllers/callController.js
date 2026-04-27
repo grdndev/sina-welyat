@@ -387,38 +387,42 @@ const rateCall = [
             const { rating, comment } = req.body;
             const call = await Call.findByPk(callId);
 
-            if (!call || call.talker_id !== id || call.listener_id !== id) {
+            if (!call || (call.talker_id !== id && call.listener_id !== id)) {
                 return res.status(404).json({ success: false, error: { message: 'Call not found' } });
             }
 
-            if (call.duration_free_seconds + duration_paid_seconds < 120) {
+            if (call.duration_free_seconds + call.duration_paid_seconds < 120) {
                 return res.status(400).json({ success: false, error: { message: 'Call was too short to be rated' } });
             }
 
             const talkerId = call.talker_id;
             const listenerId = call.listener_id;
 
-            const isRated = Rating.count({
+            const isRated = await Rating.count({
                 where: {
                     call_id: callId,
                     from_user_id: id
                 }
             });
 
-            if (isRated) {
+            if (isRated > 0) {
                 return res.status(400).json({ success: false, error: { message: 'Call was already rated' }});
             }
+
+            const toUserId = talkerId === id ? listenerId : talkerId;
 
             await Rating.create({
                 call_id: callId,
                 from_user_id: id,
-                to_user_id: talkerId === id ? listenerId : talkerId,
+                to_user_id: toUserId,
                 score: rating,
                 comment: comment
             });
 
             if (listenerId === id) {
                 ScoringService.checkTalker(talkerId);
+            } else {
+                ScoringService.checkListener(listenerId);
             }
 
             res.status(200).json({ success: true, message: 'Feedback recorded' });
