@@ -127,15 +127,6 @@ class BillingService {
                 await listener.save();
             }
 
-            // Create transaction record
-            await Transaction.create({
-                user_id: call.talker_id,
-                call_id: call.id,
-                type: 'charge',
-                amount: price,
-                status: 'completed'
-            });
-
             logger.info(`WELYAT Minute charged: +${price}$ (Total: ${call.total_cost_client}$ / Cap: ${totalMaxAllowed}$) for call ${callId}`);
 
         } catch (error) {

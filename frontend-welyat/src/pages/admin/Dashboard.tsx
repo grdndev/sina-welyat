@@ -1,12 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import Layout from "./Layout";
 
-import { ChevronRight } from "lucide-react";
 import Loading from "../Loading";
 import HealthIndicator from "../../components/HealthIndicator";
 import { maxDecimals } from "../../utils";
 import HealthDependentBackground from "../../components/HealthDependentBackground";
-import { adminApi, type AdminMetrics, type BusinessMode } from "../../api/admin";
+import { adminApi, type AdminMetrics, type BusinessMode, type CloudStatus } from "../../api/admin";
 
 type AdminData = {
     margin: number;
@@ -72,8 +71,11 @@ const AverageHourlyHealth = ({averageCost}: {averageCost: number}) => {
 export default function Dashboard() {
     const [data, setData] = useState<AdminData | null>(null);
     const [modes, setModes] = useState<BusinessMode[]>([]);
+    const [cloudStatus, setCloudStatus] = useState<CloudStatus | null>(null);
     const [showModePicker, setShowModePicker] = useState(false);
     const [showFinancial, setShowFinancial] = useState(false);
+    const [showRedistribute, setShowRedistribute] = useState(false);
+    const [redistributePercent, setRedistributePercent] = useState("10");
     const [busyAction, setBusyAction] = useState<string | null>(null);
 
     const activeMode = useMemo(() => modes.find(m => m.is_active), [modes]);
@@ -124,6 +126,15 @@ export default function Dashboard() {
                 setModes([]);
             });
 
+        adminApi.getCloudStatus()
+            .then((res) => {
+                if (!mounted) return;
+                setCloudStatus(res.data);
+            })
+            .catch(() => {
+                if (!mounted) return;
+            });
+
         return () => { mounted = false; };
     }, []);
 
@@ -133,6 +144,11 @@ export default function Dashboard() {
     };
 
     const onActivateMode = async (id: number) => {
+        const current = modes.find(m => m.id === id);
+        if (current?.is_active) {
+            setShowModePicker(false);
+            return;
+        }
         try {
             setBusyAction("activate_mode");
             await adminApi.activateBusinessMode(id);
@@ -275,12 +291,12 @@ export default function Dashboard() {
                     </div>
 
                     <div className="md:col-span-3 rounded-lg border border-primary/10 bg-background p-4">
-                        <div className="text-sm text-text-secondary mb-2">Costs definition (currently from DB + env):</div>
+                        <div className="text-sm text-text-secondary mb-2">Costs breakdown (all from DB):</div>
                         <ul className="text-sm grid gap-1 md:grid-cols-2">
-                            <li>Payouts listeners (DB): included</li>
-                            <li>Twilio costs (env): included</li>
-                            <li>Stripe fees (env): included</li>
-                            <li>Infra costs (env): included</li>
+                            <li>Payouts listeners: included</li>
+                            <li>Twilio costs: included</li>
+                            <li>Stripe fees: included</li>
+                            <li>Infra costs: included</li>
                         </ul>
                     </div>
                 </div>

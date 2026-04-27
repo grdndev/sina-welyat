@@ -26,6 +26,7 @@ export type AdminAnalytics = {
 export type AdminUser = {
   id: string;
   email: string;
+  phone: string | null;
   firstname: string | null;
   lastname: string | null;
   role: string;
@@ -34,6 +35,7 @@ export type AdminUser = {
   is_active: boolean;
   total_xp: number;
   reputation_score: number;
+  bonus_seconds: number;
   created_at: string;
 };
 
@@ -70,6 +72,13 @@ export type CloudStatus = {
   eligible_ratio: number;
 };
 
+export type TechFee = {
+  id: number;
+  type: string;
+  amount_cents: number;
+  incurred_at: string | null;
+};
+
 export const adminApi = {
   getMetrics: () => api.get<{ success: boolean; data: AdminMetrics }>('/admin/metrics'),
 
@@ -104,8 +113,16 @@ export const adminApi = {
   },
 
   promoteUser: (id: string) => api.post<void>(`/admin/users/${id}/promote-founding`, {}),
+  banUser: (id: string, ban: boolean) => api.post<{ success: boolean; data: { is_active: boolean } }>(`/admin/users/${id}/ban`, { ban }),
+  grantMinutes: (id: string, minutes: number) => api.post<{ success: boolean; data: { bonus_seconds: number } }>(`/admin/users/${id}/grant-minutes`, { minutes }),
 
-  getDisclaimer: () => api.get<{ data: { disclaimer: string } }>('/disclaimer/'),
-  updateDisclaimer: (version: string, content: string) =>
-    api.post<void>('/disclaimer/update', { version, content }),
+  refundSession: (id: string) => api.post<{ success: boolean; data: { refunded_amount: number } }>(`/admin/sessions/${id}/refund`, {}),
+
+  getDisclaimer: () => api.get<{ data: { version: number; content: string } }>('/disclaimer/'),
+  updateDisclaimer: (content: string) =>
+    api.post<{ success: boolean; data: { version: number } }>('/disclaimer/update', { content }),
+
+  getFees: () => api.get<{ success: boolean; data: { fees: TechFee[] } }>('/admin/fees'),
+  updateFees: ({ twilio, infra, stripe }: { twilio: number; infra: number; stripe: number }) =>
+    api.post<{ success: boolean; data: { twilio: number; infra: number; stripe: number } }>('/admin/fees', { twilio, infra, stripe }),
 };

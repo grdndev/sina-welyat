@@ -18,7 +18,7 @@ const Transaction = sequelize.define(
             allowNull: true,
         },
         type: {
-            type: DataTypes.ENUM('charge', 'payout', 'xp_redistribution', 'bridge_fee'),
+            type: DataTypes.ENUM('charge', 'payout', 'xp_redistribution', 'bridge_fee', 'refund'),
             allowNull: false,
         },
         amount: {

@@ -88,6 +88,10 @@ const User = sequelize.define(
             type: DataTypes.DECIMAL(10, 2),
             defaultValue: 0.0,
         },
+        bonus_seconds: {
+            type: DataTypes.INTEGER,
+            defaultValue: 0,
+        },
         stripe_customer_id: {
             type: DataTypes.STRING,
             allowNull: true,

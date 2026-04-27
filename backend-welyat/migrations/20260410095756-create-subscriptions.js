@@ -1,7 +1,6 @@
 'use strict';
 
 const { v4: uuidv4 } = require('uuid');
-const { stripe } = require("../src/services/StripeService");
 
 module.exports = {
   async up(queryInterface, Sequelize) {

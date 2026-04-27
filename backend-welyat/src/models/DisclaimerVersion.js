@@ -10,7 +10,7 @@ const DisclaimerVersion = sequelize.define(
             primaryKey: true,
         },
         version: {
-            type: DataTypes.STRING,
+            type: DataTypes.INTEGER,
             allowNull: false,
             unique: true
         },

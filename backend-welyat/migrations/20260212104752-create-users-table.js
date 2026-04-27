@@ -122,6 +122,10 @@ module.exports = {
         type: Sequelize.BOOLEAN,
         defaultValue: false,
       },
+      bonus_seconds: {
+        type: Sequelize.INTEGER,
+        defaultValue: 0
+      },
       created_at: {
         type: Sequelize.DATE,
         allowNull: false,

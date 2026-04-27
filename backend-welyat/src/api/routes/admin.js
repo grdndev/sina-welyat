@@ -42,8 +42,17 @@ router.post('/cloud/execute', adminController.executeRedistribution);
 router.post('/users/:id/promote-founding', adminController.promoteUser);
 
 router.get('/sessions', adminController.getSessions);
+router.post('/sessions/:id/refund', adminController.refundSession);
+
 router.get('/analytics', adminController.getAnalytics);
+
 router.get('/users', adminController.getUsers);
+router.post('/users/:id/ban', adminController.banUser);
+router.post('/users/:id/grant-minutes', adminController.grantMinutes);
+
 router.patch('/business-modes/:id', adminController.updateBusinessMode);
+
+router.get('/fees', adminController.getFees);
+router.post('/fees', adminController.updateFees);
 
 module.exports = router;

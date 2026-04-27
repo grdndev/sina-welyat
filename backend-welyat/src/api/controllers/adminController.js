@@ -1,8 +1,9 @@
 const { body } = require("express-validator");
 const logger = require("../../config/logger");
 const { Op } = require('sequelize');
-const { User, BusinessMode, Call, Transaction } = require("../../models");
+const { User, BusinessMode, Call, TechFees, Transaction } = require("../../models");
 const CloudXPService = require("../../services/CloudXPService");
+const { get } = require("../routes/admin");
 
 const getSessions = async (req, res, next) => {
     try {
@@ -118,7 +119,7 @@ const getUsers = async (req, res, next) => {
 
         const users = await User.findAndCountAll({
             where,
-            attributes: ['id', 'email', 'firstname', 'lastname', 'role', 'is_founding', 'founding_end_date', 'is_active', 'total_xp', 'reputation_score', 'created_at'],
+            attributes: ['id', 'email', 'phone', 'firstname', 'lastname', 'role', 'is_founding', 'founding_end_date', 'is_active', 'total_xp', 'reputation_score', 'bonus_seconds', 'created_at'],
             order: [['created_at', 'DESC']],
             limit: parseInt(limit),
             offset: parseInt(offset),
@@ -206,6 +207,77 @@ const executeRedistribution = [
         }
     }
 ]
+
+const banUser = async (req, res, next) => {
+    try {
+        const user = await User.findByPk(req.params.id);
+        if (!user) return res.status(404).json({ success: false, error: { message: 'User not found' } });
+        if (user.role === 'admin') return res.status(400).json({ success: false, error: { message: 'Cannot ban an admin' } });
+
+        const ban = req.body.ban !== false; // default true
+        user.is_active = !ban;
+        await user.save();
+
+        logger.info(`Admin ${req.user.id} ${ban ? 'banned' : 'unbanned'} user ${user.id}`);
+        res.json({ success: true, data: { is_active: user.is_active } });
+    } catch (error) {
+        logger.error(`Admin ban user error: ${error.message}`);
+        next(error);
+    }
+};
+
+const refundSession = async (req, res, next) => {
+    try {
+        const call = await Call.findByPk(req.params.id, {
+            include: [{ model: User, as: 'talker' }],
+        });
+        if (!call) return res.status(404).json({ success: false, error: { message: 'Session not found' } });
+
+        const amount = parseFloat(call.total_cost_client || 0);
+        if (amount <= 0) return res.status(400).json({ success: false, error: { message: 'Nothing to refund' } });
+
+        const talker = call.talker;
+        if (talker) {
+            talker.balance = parseFloat(talker.balance || 0) + amount;
+            await talker.save();
+        }
+
+        await Transaction.create({
+            user_id: call.talker_id,
+            call_id: call.id,
+            type: 'refund',
+            amount,
+            status: 'completed',
+            stripe_transaction_id: `admin_refund_${req.user.id}`,
+        });
+
+        logger.info(`Admin ${req.user.id} refunded session ${call.id} (${amount}$)`);
+        res.json({ success: true, data: { refunded_amount: amount } });
+    } catch (error) {
+        logger.error(`Admin refund session error: ${error.message}`);
+        next(error);
+    }
+};
+
+const grantMinutes = [
+    body('minutes').isInt({ min: 1, max: 1000 }).withMessage('Minutes must be between 1 and 1000'),
+    async (req, res, next) => {
+        try {
+            const user = await User.findByPk(req.params.id);
+            if (!user) return res.status(404).json({ success: false, error: { message: 'User not found' } });
+
+            const minutes = parseInt(req.body.minutes, 10);
+            user.bonus_seconds = (user.bonus_seconds || 0) + minutes * 60;
+            await user.save();
+
+            logger.info(`Admin ${req.user.id} granted ${minutes} free minutes to user ${user.id} (total: ${user.bonus_seconds}s)`);
+            res.json({ success: true, data: { bonus_seconds: user.bonus_seconds } });
+        } catch (error) {
+            logger.error(`Admin grant minutes error: ${error.message}`);
+            next(error);
+        }
+    },
+];
 
 const promoteUser = [
     body('force').optional().isBoolean().withMessage('Force should be a boolean'),
@@ -339,15 +411,20 @@ const getMetrics = async (req, res, next) => {
         // RevenueMonth = total completed charges
         const revenueMonth = await sumTransactions('charge', monthStart, now);
 
-        // CostsMonth (available from DB): payouts + bridge_fee + xp_redistribution
-        // External costs (Twilio/Stripe fees/infra) are not tracked in DB yet.
+        // CostsMonth: payouts + bridge_fee + xp_redistribution + tech fees (twilio/stripe/infra from DB)
         const payoutsMonth = await sumTransactions('payout', monthStart, now);
         const bridgeFeesMonth = await sumTransactions('bridge_fee', monthStart, now);
         const xpRedistributionMonth = await sumTransactions('xp_redistribution', monthStart, now);
 
-        const twilioCostsMonth = Number(process.env.TWILIO_COSTS_MONTH || 0);
-        const stripeFeesMonth = Number(process.env.STRIPE_FEES_MONTH || 0);
-        const infraCostsMonth = Number(process.env.INFRA_COSTS_MONTH || 0);
+        const techFeesMonth = await TechFees.findAll({
+            where: { incurred_at: { [Op.between]: [monthStart, now] } },
+        });
+        const sumFeeType = (type) => techFeesMonth
+            .filter(f => f.type === type)
+            .reduce((acc, f) => acc + f.amount_cents / 100, 0);
+        const twilioCostsMonth = sumFeeType('twilio');
+        const stripeFeesMonth = sumFeeType('stripe');
+        const infraCostsMonth = sumFeeType('infra');
 
         const costsMonth = payoutsMonth + bridgeFeesMonth + xpRedistributionMonth + twilioCostsMonth + stripeFeesMonth + infraCostsMonth;
         const netProfitMonth = revenueMonth - costsMonth;
@@ -382,10 +459,46 @@ const getMetrics = async (req, res, next) => {
     }
 };
 
+const getFees = async (req, res, next) => {
+    try {
+        const fees = await TechFees.findAll({
+            order: [['incurred_at', 'DESC']],
+        });
+        res.json({ success: true, data: { fees } });
+    } catch (error) {
+        logger.error(`Admin get fees error : ${error.message}`);
+        next(error);
+    }
+};
+
+const updateFees = async (req, res, next) => {
+    try {
+        const { twilio, infra, stripe } = req.body;
+
+        const now = new Date();
+        const entries = [
+            { type: 'twilio', amount_cents: Math.round(Number(twilio) * 100) },
+            { type: 'infra', amount_cents: Math.round(Number(infra) * 100) },
+            { type: 'stripe', amount_cents: Math.round(Number(stripe) * 100) },
+        ];
+
+        await Promise.all(entries.map(e => TechFees.upsert({ ...e, incurred_at: now })));
+
+        logger.info(`Tech fees updated by admin ${req.user.id}: twilio=${twilio}, infra=${infra}, stripe=${stripe}`);
+        res.json({ success: true });
+    } catch (error) {
+        logger.error(`Admin update fees error: ${error.message}`);
+        next(error);
+    }
+};
+
 module.exports = {
     cloudStatus,
     executeRedistribution,
     promoteUser,
+    banUser,
+    refundSession,
+    grantMinutes,
     getBusinessModes,
     activateBusinessMode,
     getMetrics,
@@ -393,4 +506,6 @@ module.exports = {
     getAnalytics,
     getUsers,
     updateBusinessMode,
+    getFees,
+    updateFees,
 }

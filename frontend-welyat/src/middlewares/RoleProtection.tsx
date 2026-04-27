@@ -1,4 +1,4 @@
-import { Outlet } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "./Auth";
 import Loading from "../pages/Loading";
@@ -21,7 +21,7 @@ export default function ProtectionProvider({ roles = [] }: { roles: string[] }) 
     }
 
     if (!allowed) {
-        return <div>u</div>
+        return <Navigate to="/" replace />
     }
 
     return <Outlet />;

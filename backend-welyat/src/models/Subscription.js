@@ -15,7 +15,7 @@ const Subscription = sequelize.define(
         allowNull: false,
         unique: true,
       },
-      free_minutes_per_month: {
+      free_seconds_per_month: {
         type: DataTypes.INTEGER,
         allowNull: false,
       },

@@ -1,4 +1,4 @@
-const { Call, User, BusinessMode, UserSubscription } = require('../../models');
+const { Call, User, BusinessMode, UserSubscription, Subscription } = require('../../models');
 const CallStateMachine = require('../../services/CallStateMachine');
 const XPCalculatorService = require('../../services/XPCalculatorService');
 const logger = require('../../config/logger');
@@ -12,7 +12,7 @@ const { billCall } = require('../controllers/callController');
  */
 const handleTwilioStatus = async (req, res, next) => {
     try {
-        const { CallSid, CallStatus } = req.body;
+        const { CallSid, CallStatus, CallDuration } = req.body;
         logger.info(`Twilio Webhook received: ${CallStatus} for CallSid ${CallSid}`);
 
         const call = await Call.findOne({ where: { twilio_call_sid: CallSid } });
@@ -47,28 +47,28 @@ const handleTwilioStatus = async (req, res, next) => {
             case 'busy':
             case 'no-answer':
             case 'canceled':
-                // L'appel s'est terminé
+                // Transition FSM (skip si déjà terminé via endCall manuel)
                 if (call.status !== 'ended' && call.status !== 'cancelled') {
                     const terminate = call.status === 'waiting'
                         ? fsm.cancel(`Twilio status: ${CallStatus}`)
                         : fsm.end(`Twilio status: ${CallStatus}`);
                     await terminate;
 
-                    // If Talker is in TRIAL MODE, increment seconds_used
                     if (call.talker_id) {
                         const talker = await User.findByPk(call.talker_id);
-
-                        if (talker.is_trial) {
+                        if (talker && talker.is_trial) {
                             talker.trial_seconds_used += Math.max(0, call.duration_free_seconds - 120);
                             await talker.save();
                         }
                     }
+                }
 
-                    // 1. Bill the talker
-                    const billed = await billCall(call);
+                // Facturation — Twilio est la référence de durée et d'état
+                // billCall est idempotent grâce au SELECT FOR UPDATE sur les intents
+                {
+                    const twilioSeconds = parseInt(CallDuration) || 0;
+                    const billed = await billCall(call, twilioSeconds);
 
-                    // 2. Calcul du Payout précis (à la seconde)
-                    // Payout = paid_seconds * (listener_rate_per_min / 60)
                     if (billed && call.listener_id && call.duration_paid_seconds > 0) {
                         const listener = await User.findByPk(call.listener_id);
                         const businessMode = await BusinessMode.findByPk(call.business_mode_id);
@@ -80,18 +80,14 @@ const handleTwilioStatus = async (req, res, next) => {
                             listener.balance = parseFloat(listener.balance) + parseFloat(precisePayout);
                             await listener.save();
 
-                            // Mettre à jour le call record pour le ledger
                             call.total_payout_listener = precisePayout;
                             await call.save();
 
-                            logger.info(`WELYAT: Precise payout of ${precisePayout}$ credited to listener ${listener.id} for ${call.duration_paid_seconds}s`);
+                            logger.info(`WELYAT: Payout ${precisePayout}$ credited to listener ${listener.id} for ${call.duration_paid_seconds}s`);
                         }
                     }
 
-                    // 2. Génération des XP (V0)
-                    // Rule: Paid -> XP = 0. Sinat: floor(free_minutes / 5)
                     const xpGenerated = XPCalculatorService.calculateXP(call.duration_free_seconds, call.duration_paid_seconds);
-
                     if (xpGenerated > 0 && call.listener_id) {
                         const listener = await User.findByPk(call.listener_id);
                         if (listener) {
@@ -201,6 +197,16 @@ const handleStripeWebhook = async (req, res, next) => {
                         stripe_subscription_id: stripeSubscriptionId,
                         is_active: true,
                     });
+
+                    const plan = await Subscription.findByPk(subscriptionId);
+                    if (plan?.free_seconds_per_month) {
+                        await User.increment(
+                            { bonus_seconds: plan.free_seconds_per_month },
+                            { where: { id: userId } }
+                        );
+                        logger.info(`Granted ${plan.free_seconds_per_month}s bonus to user ${userId} on subscription activation`);
+                    }
+
                     logger.info(`Subscription activated for user ${userId}: plan ${subscriptionId}`);
                 } catch (err) {
                     logger.error(`Error activating subscription for user ${userId}: ${err.message}`);

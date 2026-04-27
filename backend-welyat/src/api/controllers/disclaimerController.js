@@ -82,31 +82,33 @@ const acceptDisclaimer = [
 ]
 
 /**
- * Upload new disclaimer version and invalidate all previous acceptances
+ * Upload new disclaimer version and invalidate all previous acceptances.
+ * Version is auto-incremented (major.minor) from the latest existing version.
  */
 const updateDisclaimer = [
-    body('version').notEmpty().withMessage('Disclaimer version is required'),
     body('content').notEmpty().withMessage('Disclaimer content is required'),
     async (req, res, next) => {
         try {
-            const { version, content } = req.body;
+            const { content } = req.body;
 
-            if (!version || !content) {
+            if (!content) {
                 return res.status(400).json({
                     success: false,
-                    error: { message: "Version and content are required" }
+                    error: { message: "Content is required" }
                 });
             }
 
-            await DisclaimerVersion.create({ version, content });
+            const latest = await DisclaimerVersion.findOne({ order: [['version', 'DESC']] });
+            const nextVersion = latest ? latest.version + 1 : 1;
 
-            await User.update({
-                accepted_disclaimer: false
-            }, {
-                where: { accepted_disclaimer: true }
-            });
+            await DisclaimerVersion.create({ version: nextVersion, content });
 
-            res.status(200).send();
+            await User.update(
+                { accepted_disclaimer: false },
+                { where: { accepted_disclaimer: true } }
+            );
+
+            res.status(200).json({ success: true, data: { version: nextVersion } });
         } catch (error) {
             logger.error(`update disclaimer error : ${error.message}`);
             next(error);

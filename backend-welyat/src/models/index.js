@@ -12,6 +12,7 @@ const RedistributionDetail = require('./RedistributionDetail');
 const Reputation = require('./Reputation');
 const Subscription = require('./Subscription');
 const UserSubscription = require('./UserSubscription');
+const TechFees = require('./TechFees');
 const Transaction = require('./Transaction');
 const User = require('./User');
 
@@ -90,6 +91,7 @@ module.exports = {
     RedistributionDetail,
     Reputation,
     Subscription,
+    TechFees,
     UserSubscription,
     Transaction,
     User,

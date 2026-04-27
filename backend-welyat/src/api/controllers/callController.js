@@ -7,48 +7,71 @@ const StripeService = require('../../services/StripeService');
 const logger = require('../../config/logger');
 const { Op } = require('sequelize');
 const { body } = require('express-validator');
+const { sequelize } = require('../../config/database');
 
-async function billCall(call) {
-    const intents = await CallPaymentIntent.findAll({
-        where: { call_id: call.id, status: 'authorized' },
-        order: [['created_at', 'ASC']],
-    });
-    if (!intents.length) return false;
+async function billCall(call, twilioTotalSeconds = null) {
+    return sequelize.transaction(async (t) => {
+        const intents = await CallPaymentIntent.findAll({
+            where: { call_id: call.id, status: 'authorized' },
+            order: [['created_at', 'ASC']],
+            lock: t.LOCK.UPDATE,
+            transaction: t,
+        });
+        if (!intents.length) return false;
 
-    const FREE_SECONDS = 15 * 60;
-    const SERVICE_FEE_CENTS = 20;
-    const RATE_CENTS_PER_SECOND = 0.33 / 60 * 100;
-    const totalSeconds = (call.duration_free_seconds || 0) + (call.duration_paid_seconds || 0);
-    const billableSeconds = Math.max(0, totalSeconds - FREE_SECONDS);
-    let remainingCents = Math.round(SERVICE_FEE_CENTS + billableSeconds * RATE_CENTS_PER_SECOND);
+        const talker = await User.findByPk(call.talker_id, { lock: t.LOCK.UPDATE, transaction: t });
+        const freeSeconds = talker ? (talker.bonus_seconds || 0) : 0;
 
-    let billingSuccess = false;
-    for (const intent of intents) {
-        if (remainingCents <= 0) {
-            try {
-                await StripeService.cancelPaymentIntent(intent.stripe_payment_intent_id);
-                await intent.update({ status: 'cancelled' });
-            } catch { /* best effort */ }
-            continue;
-        }
-        const captureCents = Math.min(remainingCents, intent.amount_cents);
-        try {
-            await StripeService.captureCallPayment(intent.stripe_payment_intent_id, captureCents);
-            await intent.update({ status: 'captured', captured_cents: captureCents });
-            remainingCents -= captureCents;
-            billingSuccess = true;
-        } catch (err) {
-            logger.error(`Capture failed for PI ${intent.stripe_payment_intent_id}: ${err.message}`);
-            break;
-        }
-    }
-
-    if (billingSuccess) {
+        const SERVICE_FEE_CENTS = 20;
+        const RATE_CENTS_PER_SECOND = 0.33 / 60 * 100;
+        const totalSeconds = twilioTotalSeconds ?? ((call.duration_free_seconds || 0) + (call.duration_paid_seconds || 0));
+        const usedFreeSeconds = Math.min(totalSeconds, freeSeconds);
+        const billableSeconds = totalSeconds - usedFreeSeconds;
         const totalCents = Math.round(SERVICE_FEE_CENTS + billableSeconds * RATE_CENTS_PER_SECOND);
-        await call.update({ total_cost_client: (totalCents / 100).toFixed(2) });
-        logger.info(`Billing captured for call ${call.id}: $${(totalCents / 100).toFixed(2)}`);
-    }
-    return billingSuccess;
+        let remainingCents = totalCents;
+
+        await call.update({
+            duration_free_seconds: usedFreeSeconds,
+            duration_paid_seconds: billableSeconds,
+        }, { transaction: t });
+
+        let billingSuccess = false;
+        for (const intent of intents) {
+            if (remainingCents <= 0) {
+                try {
+                    await StripeService.cancelPaymentIntent(intent.stripe_payment_intent_id);
+                    await intent.update({ status: 'cancelled' }, { transaction: t });
+                } catch { /* best effort */ }
+                continue;
+            }
+            const captureCents = Math.min(remainingCents, intent.amount_cents);
+            try {
+                await StripeService.captureCallPayment(intent.stripe_payment_intent_id, captureCents);
+                await intent.update({ status: 'captured', captured_cents: captureCents }, { transaction: t });
+                remainingCents -= captureCents;
+                billingSuccess = true;
+            } catch (err) {
+                logger.error(`Capture failed for PI ${intent.stripe_payment_intent_id}: ${err.message}`);
+                break;
+            }
+        }
+
+        if (billingSuccess) {
+            if (talker && usedFreeSeconds > 0) {
+                await talker.update({ bonus_seconds: freeSeconds - usedFreeSeconds }, { transaction: t });
+            }
+            await call.update({ total_cost_client: (totalCents / 100).toFixed(2) }, { transaction: t });
+            await Transaction.create({
+                user_id: call.talker_id,
+                call_id: call.id,
+                type: 'charge',
+                amount: totalCents / 100,
+                status: 'completed',
+            }, { transaction: t });
+            logger.info(`Billing captured for call ${call.id}: $${(totalCents / 100).toFixed(2)} (total: ${totalSeconds}s, free: ${usedFreeSeconds}s, paid: ${billableSeconds}s)`);
+        }
+        return billingSuccess;
+    });
 }
 
 /**
@@ -332,10 +355,8 @@ const endCall = [
             }
 
             const fsm = new CallStateMachine(call);
-            await billCall(call);
             await fsm.end('Manually ended by user');
 
-            // Note: Dans un environnement réel, on couperait aussi l'appel Twilio ici
             if (call.twilio_call_sid) {
                 await TwilioService.endCall(call.twilio_call_sid);
             }

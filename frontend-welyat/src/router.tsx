@@ -1,5 +1,6 @@
 import { createBrowserRouter } from "react-router-dom";
 import AuthProtection from "./middlewares/AuthProtection";
+import RoleProtection from "./middlewares/RoleProtection";
 import AuthProvider from "./middlewares/Auth";
 import DisclaimerProtection from "./middlewares/DisclaimerProtection";
 import Disclaimers from "./pages/Disclaimers";
@@ -47,10 +48,16 @@ export const router = createBrowserRouter([
       {
         element: <AuthProtection />,
         children: [
-          { path: "/admin", element: <DashboardAdmin /> },
-          { path: "/admin/sessions", element: <AdminSessions /> },
-          { path: "/admin/analytics", element: <AdminAnalytics /> },
-          { path: "/admin/settings", element: <AdminSettings /> },
+          {
+            element: <RoleProtection roles={["admin"]} />,
+            children: [
+              { path: "/admin", element: <DashboardAdmin /> },
+              { path: "/admin/welcome", element: <Welcome /> },
+              { path: "/admin/sessions", element: <AdminSessions /> },
+              { path: "/admin/analytics", element: <AdminAnalytics /> },
+              { path: "/admin/settings", element: <AdminSettings /> },
+            ],
+          },
           { path: "/disclaimers", element: <Disclaimers /> },
           { path: "/listener", element: <DashboardListener /> },
           { path: "/listener/payout-setup", element: <PayoutSetup /> },
